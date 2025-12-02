@@ -147,20 +147,44 @@
 
                     <!-- Ödünç Alma Butonu -->
                     <div class="d-grid gap-2">
-                        @if (Model.AvailableCopies > 0)
+                        @if (User.Identity.IsAuthenticated)
                         {
-                            <button class="btn btn-primary btn-lg" disabled>
-                                <i class="bi bi-lock"></i> Ödünç Al (Giriş Gerekli)
-                            </button>
-                            <small class="text-muted text-center">
-                                Ödünç almak için giriş yapmanız gerekmektedir
-                            </small>
+                            // --- SENARYO 1: KULLANICI GİRİŞ YAPMIŞ ---
+
+                            @if (Model.AvailableCopies > 0)
+                            {
+                                <form asp-controller="Loans" asp-action="CreateLoan" method="post">
+                                    <input type="hidden" name="bookId" value="@Model.Id" />
+
+                                    <button type="submit" class="btn btn-success btn-lg w-100"
+                                            onclick="return confirm('Bu kitabı ödünç almak istediğinize emin misiniz?');">
+                                        <i class="bi bi-journal-plus"></i> Ödünç Al
+                                    </button>
+                                </form>
+                                <small class="text-muted text-center mt-2">
+                                    Kitabı 15 gün süreyle ödünç alabilirsiniz.
+                                </small>
+                            }
+                            else
+                            {
+                                <button class="btn btn-secondary btn-lg" disabled>
+                                    <i class="bi bi-x-circle"></i> Tükendi (Müsait Kopya Yok)
+                                </button>
+                                <small class="text-muted text-center mt-2">
+                                    Tüm kopyalar şu an başkalarında.
+                                </small>
+                            }
                         }
                         else
                         {
-                            <button class="btn btn-secondary btn-lg" disabled>
-                                <i class="bi bi-x-circle"></i> Müsait Kopya Yok
-                            </button>
+                            // --- SENARYO 2: MİSAFİR KULLANICI (GİRİŞ YAPMAMIŞ) ---
+
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right"></i> Ödünç Almak İçin Giriş Yap
+                            </a>
+                            <small class="text-muted text-center mt-2">
+                                İşlem yapabilmek için üye girişi gereklidir.
+                            </small>
                         }
                     </div>
 

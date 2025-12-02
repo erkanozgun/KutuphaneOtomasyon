@@ -108,6 +108,7 @@ public class LoanService : ILoanService
             ReturnDate = loan.ReturnDate,
             Status = loan.Status.ToString(),
             Notes = loan.Notes,
+            BookId=copy.BookId,
             LoanedByUserId = loan.LoanedByUserId,
             LoanedByUserName = user.FullName,
             IsOverdue = loan.IsOverdue,

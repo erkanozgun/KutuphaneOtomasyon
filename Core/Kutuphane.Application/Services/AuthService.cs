@@ -61,7 +61,7 @@ public class AuthService:IAuthService
         };
     }
 
-    public async Task<UserDto> RegisterAsync(RegisterDto dto, CreateMemberDto memberDto)
+    public async Task<UserDto> RegisterAsync(RegisterDto dto)
     {
         // 1. Username kontrolü
         if (await _userRepository.IsUsernameExistsAsync(dto.Username))
@@ -75,37 +75,20 @@ public class AuthService:IAuthService
             throw new DuplicateException("User", "Email", dto.Email);
         }
 
-        // 3. Önce Member oluştur
-        var memberNumber = await GenerateMemberNumberAsync();
-
-        var member = new Member
-        {
-            MemberNumber = memberNumber,
-            FirstName = memberDto.FirstName,
-            LastName = memberDto.LastName,
-            Email = dto.Email,
-            Phone = memberDto.Phone,
-            Address = memberDto.Address,
-            DateOfBirth = memberDto.DateOfBirth,
-            RegistrationDate = DateTime.Now,
-            Status = MemberStatus.Aktif
-        };
-
-        await _memberRepository.AddAsync(member);
-
-        // 4. Sonra User oluştur (MemberId bağla)
+        // 3. Şifre hash'le
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
+        // 4. User oluştur
         var user = new User
         {
             Username = dto.Username,
             Email = dto.Email,
             PasswordHash = passwordHash,
-            FirstName = memberDto.FirstName,
-            LastName = memberDto.LastName,
-            Role = UserRole.Member, 
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Role = Enum.Parse<UserRole>(dto.Role), // "Member" → UserRole.Member
             IsActive = true,
-            MemberId = member.Id  
+            MemberId = dto.MemberId // ✅ Controller'dan gelen MemberId
         };
 
         await _userRepository.AddAsync(user);
@@ -225,6 +208,7 @@ public class AuthService:IAuthService
             FullName = user.FullName,
             Role = user.Role.ToString(),
             IsActive = user.IsActive,
+            MemberId = user.MemberId,
             LastLoginDate = user.LastLoginDate
         };
     }

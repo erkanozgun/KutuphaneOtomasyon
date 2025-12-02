@@ -14,4 +14,5 @@ public class RegisterDto
     public string FirstName { get; set; }
     public string LastName { get; set; }
     public string Role { get; set; }
+    public int? MemberId { get; set; } 
 }

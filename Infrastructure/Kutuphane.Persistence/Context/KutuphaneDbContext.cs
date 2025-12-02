@@ -32,11 +32,11 @@ public class KutuphaneDbContext:DbContext
         modelBuilder.Entity<Loan>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Member>().HasQueryFilter(x => !x.IsDeleted);
 
-       //SeedData(modelBuilder);
+  
     }
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        // Audit fields otomatik doldurma
+     
         var entries = ChangeTracker.Entries<BaseEntity>();
 
         foreach (var entry in entries)

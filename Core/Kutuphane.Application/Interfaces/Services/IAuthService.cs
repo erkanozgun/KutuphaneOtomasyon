@@ -12,7 +12,7 @@ namespace Kutuphane.Application.Interfaces.Services;
 public interface IAuthService
 {
     Task<AuthResultDto?> LoginAsync(LoginDto dto);
-    Task<UserDto> RegisterAsync(RegisterDto dto, CreateMemberDto memberDto);
+    Task<UserDto> RegisterAsync(RegisterDto dto);
     Task<UserDto?> GetUserByIdAsync(int userId);
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<UserDto> UpdateUserRoleAsync(int userId, string role);

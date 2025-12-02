@@ -28,6 +28,8 @@ namespace Kutuphane.Persistence.Repositories
         public async Task<IEnumerable<Loan>> GetMemberActiveLoansAsync(int memberId)
         {
             return await _dbSet
+                .Include(l => l.Member)       
+                .Include(l => l.LoanedByUser) 
                 .Include(l => l.Copy)
                     .ThenInclude(c => c.Book)
                 .Where(l => l.MemberId == memberId && l.ReturnDate == null)
@@ -50,13 +52,15 @@ namespace Kutuphane.Persistence.Repositories
         public async Task<IEnumerable<Loan>> GetLoanHistoryAsync(int memberId, int pageNumber, int pageSize)
         {
             return await _dbSet
-                .Include(l => l.Copy)
-                    .ThenInclude(c => c.Book)
-                .Where(l => l.MemberId == memberId)
-                .OrderByDescending(l => l.LoanDate)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+                            .Include(l => l.Member)       
+                            .Include(l => l.LoanedByUser)
+                            .Include(l => l.Copy)
+                                .ThenInclude(c => c.Book)
+                            .Where(l => l.MemberId == memberId)
+                            .OrderByDescending(l => l.LoanDate)
+                            .Skip((pageNumber - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToListAsync();
         }
 
         public async Task<Loan?> GetLoanWithDetailsAsync(int loanId)

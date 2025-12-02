@@ -1,0 +1,158 @@
+﻿@using Kutuphane.Application.Dtos.LoanDtos
+@{
+    ViewData["Title"] = "Ödünç Kitaplarım";
+
+    // NULL CHECK: Eğer ViewBag boş gelirse hata vermesin, boş liste atadık.
+    var activeLoans = ViewBag.ActiveLoans as IEnumerable<ResultLoanDto> ?? new List<ResultLoanDto>();
+    var loanHistory = ViewBag.LoanHistory as IEnumerable<ResultLoanDto> ?? new List<ResultLoanDto>();
+}
+
+<div class="container" style="margin-top: 60px; margin-bottom: 80px;">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-book"></i> Ödünç Kitaplarım</h2>
+        <a asp-controller="Books" asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-search"></i> Kitap Ara
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-hourglass-split"></i> Aktif Ödünçler
+                <span class="badge bg-light text-dark">@activeLoans.Count()</span>
+            </h5>
+        </div>
+        <div class="card-body">
+
+            @if (!activeLoans.Any())
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="bi bi-info-circle"></i> Şu anda ödünç aldığınız kitap bulunmamaktadır.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Kitap</th>
+                                <th>Yazar</th>
+                                <th>Ödünç Tarihi</th>
+                                <th>Son Teslim</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loan in activeLoans)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@loan.BookTitle</strong><br>
+                                        <small class="text-muted">Kopya No: @loan.CopyNumber</small>
+                                    </td>
+                                    <td>@loan.Author</td>
+                                    <td>@loan.LoanDate.Value.ToString("dd.MM.yyyy")</td>
+                                    <td>
+                                        @loan.DueDate.Value.ToString("dd.MM.yyyy")
+                                        @if (loan.IsOverdue)
+                                        {
+                                            <br>
+                                            <span class="badge bg-danger">@loan.OverdueDays gün gecikme</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (loan.IsOverdue)
+                                        {
+                                            <span class="badge bg-danger">Gecikmiş</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Devam Ediyor</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@loan.BookId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Detay
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history"></i> Geçmiş Ödünçler
+            </h5>
+        </div>
+        <div class="card-body">
+
+            @if (!loanHistory.Any())
+            {
+                <div class="alert alert-light mb-0 border">
+                    <i class="bi bi-info-circle"></i> Geçmiş ödünç kaydınız bulunmamaktadır.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead>
+                            <tr>
+                                <th>Kitap</th>
+                                <th>Ödünç Tarihi</th>
+                                <th>Son Teslim</th>
+                                <th>İade Tarihi</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loan in loanHistory)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@loan.BookTitle</strong><br>
+                                        <small class="text-muted">@loan.Author</small>
+                                    </td>
+                                    <td>@loan.LoanDate.Value.ToString("dd.MM.yyyy")</td>
+                                    <td>@loan.DueDate.Value.ToString("dd.MM.yyyy")</td>
+                                    <td>
+                                        @if (loan.ReturnDate.HasValue)
+                                        {
+                                            <span class="text-success fw-bold">
+                                                @loan.ReturnDate.Value.ToString("dd.MM.yyyy")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (loan.Status == "IadeEdildi" || loan.Status == "Returned")
+                                        {
+                                            <span class="badge bg-success">İade Edildi</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@loan.Status</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
