@@ -129,18 +129,13 @@
                             </a>
                             <ul>
                                 <li>
-                                    <a asp-controller="Account" asp-action="Profile">
+                                    <a asp-controller="Members" asp-action="Profile">
                                         <i class="bi bi-person"></i> Profilim
                                     </a>
                                 </li>
                                 <li>
-                                    <a asp-controller="Account" asp-action="MyLoans">
+                                    <a asp-controller="Members" asp-action="MyLoans">
                                         <i class="bi bi-book"></i> Ödünç Kitaplarım
-                                    </a>
-                                </li>
-                                <li>
-                                    <a asp-controller="Account" asp-action="ChangePassword">
-                                        <i class="bi bi-key"></i> Şifre Değiştir
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
@@ -356,7 +351,37 @@
 
     <!-- Main JS File -->
     <script src="/BookTemp/assets/js/main.js"></script>
+    <!-- popup -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Başarı Mesajı
+        @if (TempData["Success"] != null)
+        {
+                <text>
+                Swal.fire({
+                    title:" ",
+                    text: '@Html.Raw(TempData["Success"])', 
+                    icon: 'success',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#198754'
+                });
+                </text>
+        }
 
+        // Hata Mesajı
+        @if (TempData["Error"] != null)
+        {
+                <text>
+                Swal.fire({
+                    title: 'Bir Sorun Var',
+                    text: '@Html.Raw(TempData["Error"])', 
+                    icon: 'error',
+                    confirmButtonText: 'Tamam',
+                    confirmButtonColor: '#dc3545'
+                });
+                </text>
+        }
+    </script>
 </body>
 
 </html>

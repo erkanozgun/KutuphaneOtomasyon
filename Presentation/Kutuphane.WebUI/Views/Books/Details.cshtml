@@ -149,8 +149,6 @@
                     <div class="d-grid gap-2">
                         @if (User.Identity.IsAuthenticated)
                         {
-                            // --- SENARYO 1: KULLANICI GİRİŞ YAPMIŞ ---
-
                             @if (Model.AvailableCopies > 0)
                             {
                                 <form asp-controller="Loans" asp-action="CreateLoan" method="post">

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Kutuphane.Domain.Entities
 {
-    public class Loan:BaseEntity
+    public class Loan : BaseEntity
     {
         public int CopyId { get; set; }
         public int MemberId { get; set; }
@@ -23,19 +23,21 @@ namespace Kutuphane.Domain.Entities
         public virtual Member Member { get; set; }
         public virtual User LoanedByUser { get; set; }
 
-        public bool IsOverdue => ReturnDate == null && DueDate < DateTime.Now;
+        public bool IsOverdue => ReturnDate == null && DateTime.Now.Date > DueDate.Date;
 
         public int OverdueDays
         {
             get
             {
-                if (ReturnDate != null)
-                    return 0;
 
-                var days = (DateTime.Now - DueDate).Days;
+                if (ReturnDate != null) return 0;
+
+                if (!IsOverdue) return 0;
+
+                var days = (DateTime.Now.Date - DueDate.Date).Days;
+
                 return days > 0 ? days : 0;
             }
-
         }
     }
 }

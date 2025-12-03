@@ -35,46 +35,80 @@ public class LoanService : ILoanService
 
     public async Task<ResultLoanDto> BorrowBookAsync(CreateLoanDto dto)
     {
+        // Eğer kullanıcı spesifik bir kopya seçmediyse (Otomatik Seçim)
+        if (dto.CopyId == 0 && dto.BookId != 0)
+        {
+           
+            var candidateCopies = await _copyRepository.GetAllAvailableCopiesForBookAsync(dto.BookId);
+
+            if (!candidateCopies.Any())
+            {
+                throw new InvalidOperationException("Bu kitaba ait müsait kopya bulunamadı.");
+            }
+
+            bool copyFound = false;
+
+            foreach (var kopya in candidateCopies)
+            {
+
+                if (await CanCopyBeBorrowedAsync(kopya.Id))
+                {
+                    dto.CopyId = kopya.Id; 
+                    copyFound = true;
+                    break;
+                }
+         
+            }
+
+            if (!copyFound)
+            {
+                throw new InvalidOperationException("Sistemde müsait kopyalar görünmesine rağmen teknik bir tutarsızlık nedeniyle işlem yapılamadı.");
+            }
+        }
         // 1. Kopya kontrolü
         var copy = await _copyRepository.GetCopyWithBookAsync(dto.CopyId);
-        if (copy == null)
-        {
-            throw new NotFoundException("Copy", dto.CopyId);
-        }
+        if (copy == null) throw new NotFoundException("Copy", dto.CopyId);
 
         // 2. Kopya müsait mi?
-        if (!await CanCopyBeBorrowedAsync(dto.CopyId))
-        {
-            throw new CopyNotAvailableException(dto.CopyId);
-        }
+        if (!await CanCopyBeBorrowedAsync(dto.CopyId)) throw new CopyNotAvailableException(dto.CopyId);
 
         // 3. Üye kontrolü
         var member = await _memberRepository.GetByIdAsync(dto.MemberId);
-        if (member == null)
-        {
-            throw new NotFoundException("Member", dto.MemberId);
-        }
+        if (member == null) throw new NotFoundException("Member", dto.MemberId);
 
-        // 4. Üye ödünç alabilir mi?
+        // 4. Üye ödünç alabilir mi? (Aktiflik Kontrolü)
         if (member.Status != MemberStatus.Aktif)
         {
-            throw new MemberNotEligibleException($"Member status is '{member.Status}'. Only active members can borrow books.");
+            throw new MemberNotEligibleException($"Üye durumu '{member.Status}'. Sadece aktif üyeler ödünç alabilir.");
+        }
+        // Üyenin elindeki tüm kitapları (aktif ödünçleri) çekiyoruz
+        var activeLoans = await _loanRepository.GetMemberActiveLoansAsync(dto.MemberId);
+
+        // KURAL A: Maksimum 2 Kitap Kontrolü 
+        if (activeLoans.Count() >= 2)
+        {  
+            throw new MemberNotEligibleException("Ödünç alma limitine ulaştınız (Maks: 2). Yeni kitap almak için lütfen elinizdeki kitaplardan birini iade ediniz.");
         }
 
-        // 5. Gecikmiş iadesi var mı?
-        var activeLoans = await _loanRepository.GetMemberActiveLoansAsync(dto.MemberId);
+        // KURAL B: Gecikmiş Kitap Kontrolü
         var hasOverdueLoans = activeLoans.Any(l => l.IsOverdue);
         if (hasOverdueLoans)
         {
-            throw new MemberNotEligibleException("Member has overdue loans. Cannot borrow new books.");
+            throw new MemberNotEligibleException("Gecikmiş iadeniz bulunduğu için yeni kitap ödünç alamazsınız.");
         }
 
-        // 6. Kullanıcı kontrolü
-        var user = await _userRepository.GetByIdAsync(dto.LoanedByUserId);
-        if (user == null)
+        // KURAL C: Aynı kitabı tekrar almama kontrolü (İsteğe bağlı ek güvenlik)
+        // Eğer üye aynı kitabın farklı bir kopyasını almaya çalışıyorsa engelleyebilirsin.
+        if (activeLoans.Any(l => l.Copy.BookId == copy.BookId))
         {
-            throw new NotFoundException("User", dto.LoanedByUserId);
+            throw new MemberNotEligibleException("Bu kitabı zaten ödünç almışsınız. Aynı kitabı iki kez alamazsınız.");
         }
+
+     
+
+        // 6. Kullanıcı (Personel/Sistemi Kullanan) kontrolü
+        var user = await _userRepository.GetByIdAsync(dto.LoanedByUserId);
+        if (user == null) throw new NotFoundException("User", dto.LoanedByUserId);
 
         // 7. Ödünç kaydı oluştur
         var loan = new Loan
@@ -108,7 +142,7 @@ public class LoanService : ILoanService
             ReturnDate = loan.ReturnDate,
             Status = loan.Status.ToString(),
             Notes = loan.Notes,
-            BookId=copy.BookId,
+            BookId = copy.BookId,
             LoanedByUserId = loan.LoanedByUserId,
             LoanedByUserName = user.FullName,
             IsOverdue = loan.IsOverdue,

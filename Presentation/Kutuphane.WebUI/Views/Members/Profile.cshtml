@@ -1,4 +1,6 @@
-﻿@model Kutuphane.Application.Dtos.AuthDtos.UserDto
+﻿
+
+@model Kutuphane.Application.Dtos.AuthDtos.UserDto
 
 @{
     ViewData["Title"] = "Profilim";
@@ -30,11 +32,15 @@
                     <hr class="my-4">
 
                     <div class="d-grid gap-2">
-                        <a asp-controller="Account" asp-action="ChangePassword" class="btn btn-outline-primary">
+                        <a asp-controller="Members" asp-action="MyLoans" class="btn btn-outline-success">
+                            <i class="bi bi-book"></i> Ödünç Kitaplarım
+                        </a>
+                        <a asp-controller="Members" asp-action="ChangePassword" class="btn btn-outline-primary">
                             <i class="bi bi-key"></i> Şifre Değiştir
                         </a>
-                        <a asp-controller="Account" asp-action="MyLoans" class="btn btn-outline-success">
-                            <i class="bi bi-book"></i> Ödünç Kitaplarım
+                      
+                        <a asp-controller="Members" asp-action="EditProfile" class="btn btn-outline-primary">
+                            <i class="bi bi-key"></i> Bilgileri Güncelle
                         </a>
                     </div>
                 </div>

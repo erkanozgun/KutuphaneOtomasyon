@@ -11,9 +11,10 @@ namespace Kutuphane.Application.Interfaces.Repositories;
 public interface ICopyRepository:IGenericRepository<Copy>
 {
     Task<IEnumerable<Copy>> GetAvailableCopiesAsync(int bookId);
+    Task<Copy?> GetFirstAvailableCopyAsync(int bookId);
     Task<Copy?> GetCopyWithDetailsAsync(int copyId);
     Task<IEnumerable<Copy>> GetCopiesByStatusAsync(CopyStatus copyStatus);
     Task<Copy?> GetCopyWithBookAsync(int copyId);
     Task<int> GetAvailableCopyCountAsync(int bookId);
-
+    Task<IEnumerable<Copy>> GetAllAvailableCopiesForBookAsync(int bookId);
 }

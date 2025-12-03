@@ -78,6 +78,16 @@
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-eye"></i> Detay
                                         </a>
+
+                                        <form asp-controller="Loans" asp-action="ReturnLoan" method="post" style="display:inline;">
+
+                                            <input type="hidden" name="loanId" value="@loan.Id" />
+
+                                            <button type="submit" class="btn btn-sm btn-outline-danger ms-1"
+                                                    onclick="return confirm('@loan.BookTitle kitabını iade etmek istediğinize emin misiniz?');">
+                                                <i class="bi bi-arrow-return-left"></i> İade Et
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             }

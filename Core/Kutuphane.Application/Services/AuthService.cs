@@ -18,7 +18,7 @@ public class AuthService:IAuthService
 {
     private readonly IUserRepository _userRepository;
     private readonly IMemberRepository _memberRepository;
-
+   
     public AuthService(IUserRepository userRepository, IMemberRepository memberRepository)
     {
         _userRepository = userRepository;
@@ -137,19 +137,23 @@ public class AuthService:IAuthService
     public async Task ChangePasswordAsync(int userId, ChangePasswordDto dto)
     {
         var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null)
-        {
-            throw new NotFoundException("User", userId);
-        }
+        if (user == null) throw new NotFoundException("User", userId);
 
-        // Eski şifre doğru mu?
+        // A) Eski şifre doğru mu?
         if (!BCrypt.Net.BCrypt.Verify(dto.OldPassword, user.PasswordHash))
         {
-            throw new BusinessException("Current password is incorrect.");
+            throw new BusinessException("Mevcut şifrenizi yanlış girdiniz.");
         }
 
-        // Yeni şifre hash'le
+        // B) Yeni şifre, eski şifreyle aynı mı? (Opsiyonel Güvenlik Kuralı)
+        if (BCrypt.Net.BCrypt.Verify(dto.NewPassword, user.PasswordHash))
+        {
+            throw new BusinessException("Yeni şifreniz eskisiyle aynı olamaz.");
+        }
+
+        // C) Yeni şifreyi hashle ve kaydet
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
         await _userRepository.UpdateAsync(user);
     }
 

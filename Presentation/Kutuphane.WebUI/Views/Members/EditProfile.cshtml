@@ -1,0 +1,68 @@
+﻿@model Kutuphane.Application.Dtos.MemberDtos.MemberProfileDto
+@{
+    ViewData["Title"] = "Bilgileri Güncelle";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">Profil Düzenle</div>
+        <div class="card-body">
+
+            <form asp-action="EditProfile" method="post">
+
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row mb-3">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold ">Kullanıcı Adı </label>
+                        <div class="input-group-text">
+                            <span class="input-group-text">@@</span>
+                            <input asp-for="Username" class="form-control" />
+                        </div>
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <small class="text-muted">Giriş yaparken kullandığınız kullanıcı adıdır.</small>
+                    </div>
+                </div>
+
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label class="form-label">Ad</label>
+                        <input asp-for="FirstName" class="form-control" />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label>Soyad</label>
+                        <input asp-for="LastName" class="form-control" />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>E-Posta</label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col">
+                        <label>Telefon</label>
+                        <input asp-for="Phone" class="form-control" />
+                    </div>
+                    <div class="col">
+                        <label>Doğum Tarihi</label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label>Adres</label>
+                    <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success">Kaydet</button>
+                <a asp-action="Profile" class="btn btn-secondary">İptal</a>
+            </form>
+        </div>
+    </div>
+</div>

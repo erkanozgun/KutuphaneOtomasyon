@@ -164,52 +164,6 @@ namespace Kutuphane.Web.Controllers
         }
 
 
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> Profile()
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var user = await _authService.GetUserByIdAsync(userId);
 
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            // MemberId varsa member bilgilerini çek
-            if (user.MemberId.HasValue)
-            {
-                var member = await _memberService.GetMemberByIdAsync(user.MemberId.Value);
-                ViewBag.Member = member;
-            }
-
-            return View(user);
-        }
-        [HttpGet]
-        [Authorize(Roles = "Member")]
-        public async Task<IActionResult> MyLoans()
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var user = await _authService.GetUserByIdAsync(userId);
-
-            if (user == null || !user.MemberId.HasValue)
-            {
-                TempData["Error"] = "Üye bilgileriniz bulunamadı.";
-                return RedirectToAction("Profile");
-            }
-
-            // Üyenin aktif ödünçleri
-            var activeLoans = await _loanService.GetMemberActiveLoansAsync(user.MemberId.Value);
-
-            // Üyenin geçmiş ödünçleri
-            var loanHistory = await _loanService.GetLoanHistoryAsync(user.MemberId.Value, 1, 10);
-
-            ViewBag.ActiveLoans = activeLoans;
-            ViewBag.LoanHistory = loanHistory;
-
-
-
-            return View();
-        }
     }
 }

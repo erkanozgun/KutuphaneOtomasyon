@@ -16,11 +16,13 @@ public class MemberService:IMemberService
 {
     private readonly IMemberRepository _memberRepository;
     private readonly ILoanRepository _loanRepository;
+    private readonly IUserRepository _userRepository;
 
-    public MemberService(IMemberRepository memberRepository, ILoanRepository loanRepository)
+    public MemberService(IMemberRepository memberRepository, ILoanRepository loanRepository, IUserRepository userRepository)
     {
         _memberRepository = memberRepository;
         _loanRepository = loanRepository;
+        _userRepository = userRepository;
     }
 
     public async Task<IEnumerable<ResultMemberDto>> GetAllMembersAsync()
@@ -266,5 +268,57 @@ public class MemberService:IMemberService
             Status = member.Status.ToString(),
             Notes = member.Notes
         };
+    }
+
+    public async Task UpdateMemberProfileAsync(MemberProfileDto dto)
+    {
+
+        var member = await _memberRepository.GetByIdAsync(dto.Id);
+        if (member == null) throw new NotFoundException("Member", dto.Id);
+
+ 
+        var user = await _userRepository.FirstOrDefaultAsync(u => u.MemberId == dto.Id);
+        if (user == null) throw new NotFoundException("User linked to Member", dto.Id);
+
+        if (dto.Email != member.Email)
+        {
+            var existingMemberEmail = await _memberRepository.FirstOrDefaultAsync(m => m.Email == dto.Email && m.Id != dto.Id);
+            if (existingMemberEmail != null) throw new DuplicateException("Member", "Email", dto.Email);
+
+            var existingUserEmail = await _userRepository.FirstOrDefaultAsync(u => u.Email == dto.Email && u.Id != user.Id);
+            if (existingUserEmail != null) throw new DuplicateException("User", "Email", dto.Email);
+        }
+
+        if (dto.Username != user.Username)
+        {
+
+            var existingUsername = await _userRepository.GetByUsernameAsync(dto.Username);
+
+  
+            if (existingUsername != null && existingUsername.Id != user.Id)
+            {
+                throw new DuplicateException("User", "Username", dto.Username);
+            }
+
+            user.Username = dto.Username;
+        }
+
+     
+        member.FirstName = dto.FirstName;
+        member.LastName = dto.LastName;
+        member.Email = dto.Email;
+        member.Phone = dto.Phone;
+        member.Address = dto.Address;
+        member.DateOfBirth = dto.DateOfBirth;
+
+        await _memberRepository.UpdateAsync(member);
+
+       
+        user.FirstName = dto.FirstName;
+        user.LastName = dto.LastName;
+        user.Email = dto.Email;
+
+
+        await _userRepository.UpdateAsync(user);
     }
 }

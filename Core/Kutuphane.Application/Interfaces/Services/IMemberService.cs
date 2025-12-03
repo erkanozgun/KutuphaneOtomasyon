@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Kutuphane.Application.Dtos.MemberDtos.UpdateMemberDto;
 
 namespace Kutuphane.Application.Interfaces.Services;
 
@@ -18,4 +19,5 @@ public interface IMemberService
     Task<ResultMemberDto> CreateMemberAsync(CreateMemberDto dto);
     Task<ResultMemberDto> UpdateMemberAsync(int id, UpdateMemberDto dto);
     Task DeleteMemberAsync(int id);
+    Task UpdateMemberProfileAsync(MemberProfileDto dto);
 }
