@@ -77,8 +77,8 @@
                                     <i class="bi bi-pencil-square"></i>
                                 </a>
 
-                                <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" target="_blank" class="btn btn-sm btn-info text-white" title="Sitede Gör">
-                                    <i class="bi bi-eye"></i>
+                                <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-sm btn-info text-white" title="Yönet ve Detaylar">
+                                    <i class="bi bi-info-circle"></i>
                                 </a>
 
                                 <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Bu kitabı ve tüm kopyalarını silmek istediğinize emin misiniz?');">

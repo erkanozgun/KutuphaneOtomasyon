@@ -1,55 +1,142 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml"; 
+﻿@model Kutuphane.WebUI.Models.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Genel Bakış";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="card text-white bg-primary mb-3 shadow-sm" style="max-width: 18rem;">
-            <div class="card-header">Toplam Üye</div>
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-primary h-100 shadow-sm">
             <div class="card-body">
-                <h2 class="card-title"><i class="bi bi-people-fill"></i> 150</h2>
-                <p class="card-text">Aktif kütüphane üyesi.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Toplam Kitap</h6>
+                        <h2 class="my-2 fw-bold">@Model.Stats.TotalBooks</h2>
+                        <small>Kopya: @Model.Stats.TotalCopies | Raf: @Model.Stats.AvailableCopies</small>
+                    </div>
+                    <i class="bi bi-journal-album fs-1 opacity-50"></i>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-success mb-3 shadow-sm" style="max-width: 18rem;">
-            <div class="card-header">Toplam Kitap</div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-success h-100 shadow-sm">
             <div class="card-body">
-                <h2 class="card-title"><i class="bi bi-book-fill"></i> 3,450</h2>
-                <p class="card-text">Raftaki ve ödünçteki kitaplar.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Toplam Üye</h6>
+                        <h2 class="my-2 fw-bold">@Model.Stats.TotalMembers</h2>
+                        <small>Aktif Üye: @Model.Stats.ActiveMembers</small>
+                    </div>
+                    <i class="bi bi-people fs-1 opacity-50"></i>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-warning mb-3 shadow-sm" style="max-width: 18rem;">
-            <div class="card-header text-dark">Ödünçte</div>
-            <div class="card-body text-dark">
-                <h2 class="card-title"><i class="bi bi-arrow-left-right"></i> 45</h2>
-                <p class="card-text">Şu an okunan kitaplar.</p>
+    <div class="col-md-3 mb-3">
+        <div class="card text-dark bg-warning h-100 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Dışarıdaki Kitaplar</h6>
+                        <h2 class="my-2 fw-bold">@Model.Stats.ActiveLoans</h2>
+                        <small>Okunuyor...</small>
+                    </div>
+                    <i class="bi bi-book fs-1 opacity-50"></i>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-3">
-        <div class="card text-white bg-danger mb-3 shadow-sm" style="max-width: 18rem;">
-            <div class="card-header">Gecikmiş İade</div>
+    <div class="col-md-3 mb-3">
+        <div class="card text-white bg-danger h-100 shadow-sm">
             <div class="card-body">
-                <h2 class="card-title"><i class="bi bi-exclamation-triangle-fill"></i> 5</h2>
-                <p class="card-text">Acil ilgilenilmesi gerekenler.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Gecikmiş İadeler</h6>
+                        <h2 class="my-2 fw-bold">@Model.Stats.OverdueLoans</h2>
+                        <small>Acil Müdahale Gerekir</small>
+                    </div>
+                    <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm mt-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">Son Hareketler</h5>
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-danger"><i class="bi bi-clock-history"></i> Gecikme Raporu</h5>
+                <a asp-controller="AdminLoans" asp-action="Overdue" class="btn btn-sm btn-outline-danger">Detaylı Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Üye</th>
+                                <th>İletişim</th>
+                                <th>Kitap</th>
+                                <th>Son Tarih</th>
+                                <th>Gecikme</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loan in Model.OverdueLoans.Take(10)) 
+                            {
+                                <tr>
+                                    <td class="ps-3 fw-bold">@loan.MemberName</td>
+                                    <td>@loan.MemberPhone</td>
+                                    <td>
+                                        @loan.BookTitle <br>
+                                        <small class="text-muted">Kopya: @loan.CopyNumber</small>
+                                    </td>
+                                    <td>@loan.DueDate.ToShortDateString()</td>
+                                    <td><span class="badge bg-danger">@loan.OverdueDays Gün</span></td>
+                                </tr>
+                            }
+                            @if (!Model.OverdueLoans.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="bi bi-emoji-smile fs-3 d-block mb-2"></i>
+                                        Şu an gecikmiş kitap bulunmuyor.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <p>Buraya son ödünç alma işlemleri listelenecek...</p>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary"><i class="bi bi-star-fill"></i> En Çok Okunanlar</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach (var book in Model.PopularBooks)
+                {
+                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">@book.Title</div>
+                            <small class="text-muted">@book.Author</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">@book.BorrowCount kez</span>
+                    </div>
+                }
+                @if (!Model.PopularBooks.Any())
+                {
+                    <div class="list-group-item text-center text-muted py-4">Veri yok.</div>
+                }
+            </div>
+        </div>
     </div>
 </div>

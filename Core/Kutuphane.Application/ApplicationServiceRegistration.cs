@@ -19,6 +19,7 @@ namespace Kutuphane.Application
             services.AddScoped<ILoanService, LoanService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IReportService, ReportService>();
+            services.AddScoped<IUserService, UserService>();
 
             return services;
         }

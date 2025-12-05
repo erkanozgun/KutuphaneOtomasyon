@@ -237,5 +237,23 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var book = await _bookService.GetBookByIdAsync(id);
+            if (book == null) return NotFound();
+
+            var copies = await _copyService.GetCopiesByBookIdAsync(id);
+
+          
+            var model = new BookAdminDetailsViewModel
+            {
+                Book = book,
+                Copies = copies
+            };
+
+            return View(model);
+        }
     }
 }
