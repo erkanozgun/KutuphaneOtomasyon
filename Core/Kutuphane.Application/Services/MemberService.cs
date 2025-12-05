@@ -60,39 +60,43 @@ public class MemberService:IMemberService
             RegistrationDate = member.RegistrationDate,
             Status = member.Status.ToString(),
             Notes = member.Notes,
+
+  
             ActiveLoans = activeLoans.Select(l => new Dtos.LoanDtos.ResultLoanDto
             {
                 Id = l.Id,
                 CopyId = l.CopyId,
                 MemberId = l.MemberId,
                 MemberName = member.FullName,
-                BookTitle = l.Copy.Book.Title,
-                CopyNumber = l.Copy.CopyNumber,
+                BookTitle = l.Copy?.Book?.Title ?? "Kitap Bulunamadı",
+                CopyNumber = l.Copy?.CopyNumber ?? "---",
                 LoanDate = l.LoanDate,
                 DueDate = l.DueDate,
                 ReturnDate = l.ReturnDate,
                 Status = l.Status.ToString(),
                 Notes = l.Notes,
                 LoanedByUserId = l.LoanedByUserId,
-                LoanedByUserName = l.LoanedByUser.FullName,
+                LoanedByUserName = l.LoanedByUser?.FullName ?? "Sistem",
                 IsOverdue = l.IsOverdue,
                 OverdueDays = l.OverdueDays
             }),
+
+            
             LoanHistory = loanHistory.Select(l => new Dtos.LoanDtos.ResultLoanDto
             {
                 Id = l.Id,
                 CopyId = l.CopyId,
                 MemberId = l.MemberId,
                 MemberName = member.FullName,
-                BookTitle = l.Copy.Book.Title,
-                CopyNumber = l.Copy.CopyNumber,
+                BookTitle = l.Copy?.Book?.Title ?? "Kitap Silinmiş",
+                CopyNumber = l.Copy?.CopyNumber ?? "---",
                 LoanDate = l.LoanDate,
                 DueDate = l.DueDate,
                 ReturnDate = l.ReturnDate,
                 Status = l.Status.ToString(),
                 Notes = l.Notes,
                 LoanedByUserId = l.LoanedByUserId,
-                LoanedByUserName = l.LoanedByUser.FullName,
+                LoanedByUserName = l.LoanedByUser?.FullName ?? "Sistem/Bilinmiyor",
                 IsOverdue = l.IsOverdue,
                 OverdueDays = l.OverdueDays
             })

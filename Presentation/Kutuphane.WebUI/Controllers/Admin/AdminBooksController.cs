@@ -1,7 +1,6 @@
 ﻿using Kutuphane.Application.Dtos.BookDtos;
 using Kutuphane.Application.Exceptions;
 using Kutuphane.Application.Interfaces.Services;
-using Kutuphane.Application.Services;
 using Kutuphane.WebUI.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,15 +19,17 @@ namespace Kutuphane.WebUI.Controllers.Admin
             _copyService = copyService;
         }
 
-        public async Task<IActionResult> Index()
+   
+        public async Task<IActionResult> Index(string searchTerm)
         {
+          
+            var books = await _bookService.SearchBooksAsync(searchTerm);
+         
+            ViewBag.SearchTerm = searchTerm;
 
-            var books = await _bookService.GetAllBooksAsync();
             return View(books);
         }
 
-
- 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -44,14 +45,14 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
             return RedirectToAction("Index");
         }
-    
+
         [HttpGet]
         public async Task<IActionResult> GetCopies(int bookId)
         {
-          
             var copies = await _copyService.GetCopiesByBookIdAsync(bookId);
             return Json(copies);
         }
+
         [HttpPost]
         public async Task<IActionResult> DeleteCopy(int copyId)
         {
@@ -72,7 +73,6 @@ namespace Kutuphane.WebUI.Controllers.Admin
             return View();
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookCreateViewModel model)
@@ -88,24 +88,20 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
                 if (model.ImageFile != null)
                 {
-                 
                     var extension = Path.GetExtension(model.ImageFile.FileName);
                     var newImageName = Guid.NewGuid() + extension;
                     var location = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/books");
 
-                  
                     if (!Directory.Exists(location))
                         Directory.CreateDirectory(location);
 
                     var fullPath = Path.Combine(location, newImageName);
 
-                 
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
                         await model.ImageFile.CopyToAsync(stream);
                     }
 
-                  
                     imageUrl = "/img/books/" + newImageName;
                 }
 
@@ -119,10 +115,9 @@ namespace Kutuphane.WebUI.Controllers.Admin
                     PublicationYear = model.PublicationYear ?? 0,
                     Publisher = model.Publisher,
                     Description = model.Description,
-                    ImageUrl = imageUrl 
+                    ImageUrl = imageUrl
                 };
 
-       
                 await _bookService.CreateBookAsync(createDto);
 
                 TempData["Success"] = "Kitap başarıyla eklendi.";
@@ -139,16 +134,14 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 return View(model);
             }
         }
-      
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            
             var bookDto = await _bookService.GetBookByIdAsync(id);
 
             if (bookDto == null) return NotFound();
 
-          
             var model = new BookEditViewModel
             {
                 Id = bookDto.Id,
@@ -160,13 +153,12 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 PublicationYear = bookDto.PublicationYear ?? 0,
                 Publisher = bookDto.Publisher,
                 Description = bookDto.Description,
-                ExistingImageUrl = bookDto.ImageUrl 
+                ExistingImageUrl = bookDto.ImageUrl
             };
 
             return View(model);
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(BookEditViewModel model)
@@ -175,13 +167,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
             try
             {
-           
                 string? finalImageUrl = model.ExistingImageUrl;
 
-      
                 if (model.ImageFile != null)
                 {
-                    // 1. Yeni resmi kaydet
                     var extension = Path.GetExtension(model.ImageFile.FileName);
                     var newImageName = Guid.NewGuid() + extension;
                     var location = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/books");
@@ -200,16 +189,15 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
                 var updateDto = new UpdateBookDto
                 {
-                    
                     Title = model.Title,
                     Author = model.Author,
-                    ISBN = model.ISBN, 
+                    ISBN = model.ISBN,
                     Category = model.Category,
                     PageCount = model.PageCount,
                     PublicationYear = model.PublicationYear,
                     Publisher = model.Publisher,
                     Description = model.Description,
-                    Language = "Türkçe", 
+                    Language = "Türkçe",
                     ImageUrl = finalImageUrl
                 };
                 await _bookService.UpdateBookAsync(model.Id, updateDto);
@@ -218,7 +206,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 return RedirectToAction("Index");
             }
             catch (DuplicateException ex)
-            {   
+            {
                 ModelState.AddModelError("ISBN", "Bu ISBN numarası başka bir kitapta kayıtlı.");
                 return View(model);
             }
@@ -228,6 +216,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 return View(model);
             }
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCopies(int bookId, int count, string shelfLocation)
@@ -248,6 +237,5 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
             return RedirectToAction("Index");
         }
-
     }
 }

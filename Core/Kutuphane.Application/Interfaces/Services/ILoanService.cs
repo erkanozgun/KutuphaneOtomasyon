@@ -19,4 +19,5 @@ public interface ILoanService
     Task<IEnumerable<ResultLoanDto>> GetLoanHistoryAsync(int memberId, int pageNumber, int pageSize);
     Task<bool> CanCopyBeBorrowedAsync(int copyId);
     Task<int> CalculateOverdueDaysAsync(int loanId);
+    Task<IEnumerable<ResultLoanDto>> GetActiveLoansAsync();
 }

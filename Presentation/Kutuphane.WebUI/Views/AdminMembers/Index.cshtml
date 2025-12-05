@@ -1,0 +1,153 @@
+﻿@model IEnumerable<Kutuphane.Application.Dtos.MemberDtos.ResultMemberDto>
+
+@{
+    ViewData["Title"] = "Üye Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary"><i class="bi bi-people-fill"></i> Üye Listesi</h2>
+    <a asp-action="Create" class="btn btn-success">
+        <i class="bi bi-person-plus-fill"></i> Yeni Üye Ekle
+    </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form asp-action="Index" method="get">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="searchTerm" class="form-control border-start-0"
+                       placeholder="Üye Adı, Soyadı veya Üye Numarası (Örn: UYE-2025-001) ile arama yapın..."
+                       value="@ViewBag.SearchTerm">
+                <button class="btn btn-primary px-4" type="submit">Ara</button>
+
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                {
+                    <a asp-action="Index" class="btn btn-outline-danger" title="Aramayı Temizle">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 60px;">Durum</th>
+                        <th>Üye Bilgisi</th>
+                        <th>İletişim</th>
+                        <th>Kayıt Tarihi</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var member in Model)
+                    {
+                        <tr>
+                            <td class="text-center">
+                                @if (member.Status == "Aktif")
+                                {
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;" title="Aktif Üye">
+                                        <i class="bi bi-person-check-fill"></i>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;" title="Pasif Üye">
+                                        <i class="bi bi-person-x-fill"></i>
+                                    </div>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="fw-bold text-dark">@member.FullName</div>
+                                <span class="badge bg-light text-dark border">@member.MemberNumber</span>
+                            </td>
+
+                            <td>
+                                <div class="small"><i class="bi bi-envelope"></i> @member.Email</div>
+                                <div class="small text-muted"><i class="bi bi-telephone"></i> @member.Phone</div>
+                            </td>
+
+                            <td>
+                                @if (member.RegistrationDate.HasValue)
+                                {
+                                    <span>@member.RegistrationDate.Value.ToString("dd.MM.yyyy")</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@member.Id" class="btn btn-sm btn-info text-white" title="Detaylar ve Geçmiş">
+                                    <i class="bi bi-clock-history"></i> Detay
+                                </a>
+
+                                <a asp-action="Edit" asp-route-id="@member.Id" class="btn btn-sm btn-warning text-dark" title="Düzenle">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+
+                                <button type="button" class="btn btn-sm btn-danger"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal-@member.Id"
+                                        title="Sil">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+
+                                <div class="modal fade" id="deleteModal-@member.Id" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-danger text-white">
+                                                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Silme Onayı</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <p class="fw-bold">@member.FullName</p>
+                                                <p>Bu üyeyi silmek istediğinize emin misiniz?</p>
+                                                <div class="alert alert-warning py-2 small">
+                                                    <i class="bi bi-info-circle"></i> Eğer üyenin üzerinde iade edilmemiş kitap varsa silme işlemi gerçekleşmeyecektir.
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                <form asp-action="Delete" method="post">
+                                                    <input type="hidden" name="id" value="@member.Id" />
+                                                    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-light text-center mt-3 border border-secondary border-opacity-25">
+                <div class="fs-4 text-muted mb-2"><i class="bi bi-search"></i></div>
+                <strong>Kayıt bulunamadı.</strong>
+                <p class="mb-0 text-muted small">Aradığınız kriterlere uygun üye yok veya henüz hiç üye eklenmemiş.</p>
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                {
+                    <a asp-action="Index" class="btn btn-sm btn-primary mt-2">Tüm Listeyi Göster</a>
+                }
+            </div>
+        }
+    </div>
+</div>

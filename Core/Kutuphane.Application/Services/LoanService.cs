@@ -268,18 +268,27 @@ public class LoanService : ILoanService
             Id = loan.Id,
             CopyId = loan.CopyId,
             MemberId = loan.MemberId,
-            MemberName = loan.Member.FullName,
-            BookTitle = loan.Copy.Book.Title,
-            CopyNumber = loan.Copy.CopyNumber,
+            MemberName = loan.Member?.FullName ?? "Silinmiş Üye",
+            BookTitle = loan.Copy?.Book?.Title ?? "Bilinmeyen Kitap",
+            CopyNumber = loan.Copy?.CopyNumber ?? "---",
+            Author = loan.Copy?.Book?.Author ?? "",
+
+            BookId = loan.Copy?.BookId ?? 0,
             LoanDate = loan.LoanDate,
             DueDate = loan.DueDate,
             ReturnDate = loan.ReturnDate,
             Status = loan.Status.ToString(),
             Notes = loan.Notes,
             LoanedByUserId = loan.LoanedByUserId,
-            LoanedByUserName = loan.LoanedByUser.FullName,
+            LoanedByUserName = loan.LoanedByUser?.FullName ?? "Sistem/Bilinmiyor",
             IsOverdue = loan.IsOverdue,
             OverdueDays = loan.OverdueDays
         };
+    }
+
+    public async Task<IEnumerable<ResultLoanDto>> GetActiveLoansAsync()
+    {
+        var activeLoans = await _loanRepository.GetActiveLoansAsync();
+        return activeLoans.Select(MapToDto).ToList();
     }
 }

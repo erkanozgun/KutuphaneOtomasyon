@@ -1,0 +1,63 @@
+﻿@model Kutuphane.Application.Dtos.MemberDtos.CreateMemberDto
+
+@{
+    ViewData["Title"] = "Yeni Üye Ekle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Yeni Üye Kaydı</h4>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="FirstName" class="form-label">Ad</label>
+                    <input asp-for="FirstName" class="form-control" required />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="LastName" class="form-label">Soyad</label>
+                    <input asp-for="LastName" class="form-control" required />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Email" class="form-label">E-Posta</label>
+                    <input asp-for="Email" type="email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Phone" class="form-label">Telefon</label>
+                    <input asp-for="Phone" class="form-control" required />
+                    <span asp-validation-for="Phone" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Address" class="form-label">Adres</label>
+                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DateOfBirth" class="form-label">Doğum Tarihi</label>
+                <input asp-for="DateOfBirth" type="date" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Notes" class="form-label">Notlar</label>
+                <textarea asp-for="Notes" class="form-control"></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-secondary me-2">İptal</a>
+                <button type="submit" class="btn btn-primary">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>

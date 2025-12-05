@@ -91,5 +91,17 @@ namespace Kutuphane.Persistence.Repositories
                 { "OverdueLoans", overdueLoans }
             };
         }
+
+        public async Task<IEnumerable<Loan?>> GetActiveLoansAsync()
+        {
+            return await _context.Loans
+                    .Include(l => l.Member)
+                    .Include(l => l.Copy)
+                        .ThenInclude(c => c.Book)
+                    .Include(l => l.LoanedByUser) 
+                    .Where(l => l.ReturnDate == null)
+                    .OrderByDescending(l => l.LoanDate) 
+                    .ToListAsync();
+        }
     }
 }

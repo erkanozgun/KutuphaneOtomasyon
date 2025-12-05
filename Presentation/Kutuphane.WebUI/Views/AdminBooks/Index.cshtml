@@ -12,13 +12,36 @@
     </a>
 </div>
 
+<div class="card shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form asp-action="Index" method="get">
+            <div class="input-group">
+                <span class="input-group-text bg-light border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="searchTerm" class="form-control border-start-0"
+                       placeholder="Kitap Adı, ISBN veya Yazar Adı ile arama yapın..."
+                       value="@ViewBag.SearchTerm">
+                <button class="btn btn-primary px-4" type="submit">Ara</button>
+
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                {
+                    <a asp-action="Index" class="btn btn-outline-danger" title="Aramayı Temizle">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="card shadow-sm">
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th style="width: 80px;">Görsel</th> 
+                        <th style="width: 80px;">Görsel</th>
                         <th>Başlık / ISBN</th>
                         <th>Yazar</th>
                         <th>Kategori</th>
@@ -84,12 +107,23 @@
 
         @if (!Model.Any())
         {
-            <div class="alert alert-warning mt-3 text-center">
-                Henüz hiç kitap eklenmemiş.
+            <div class="alert alert-light text-center mt-3 border">
+                <div class="fs-4 text-muted mb-2"><i class="bi bi-search"></i></div>
+                <strong>Kayıt bulunamadı.</strong>
+                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                {
+                    <p class="mb-0 text-muted small">"@ViewBag.SearchTerm" aramasına uygun kitap bulunamadı.</p>
+                    <a asp-action="Index" class="btn btn-sm btn-primary mt-2">Tüm Listeyi Göster</a>
+                }
+                else
+                {
+                    <p class="mb-0 text-muted small">Henüz hiç kitap eklenmemiş.</p>
+                }
             </div>
         }
     </div>
 </div>
+
 <div class="modal fade" id="addCopyModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -127,6 +161,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="copiesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -183,7 +218,7 @@
                                     <td><span class="badge ${badgeClass}">${item.status}</span></td>
                                     <td>${item.shelfLocation}</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-danger" onclick="deleteCopy(${item.id}, this)">
+                                        <button  class="btn btn-sm btn-danger" onclick="deleteCopy(${item.id}, this)">
                                             <i class="bi bi-trash"></i> Sil
                                         </button>
                                     </td>
@@ -198,7 +233,7 @@
         function deleteCopy(copyId, btnElement) {
             if (!confirm('Bu kopyayı silmek istediğinize emin misiniz?')) return;
 
-            $.post('/Admin/AdminBooks/DeleteCopy', { copyId: copyId }, function (response) {
+            $.post('/AdminBooks/DeleteCopy', { copyId: copyId }, function (response) {
                 if (response.success) {
                     // Satırı tablodan sil
                     $(btnElement).closest('tr').fadeOut();

@@ -10,6 +10,7 @@ namespace Kutuphane.Application.Interfaces.Repositories;
 public interface ILoanRepository:IGenericRepository<Loan>
 {
     Task<Loan?> GetActiveLoanAsync(int copyId);
+    Task<IEnumerable<Loan?>> GetActiveLoansAsync();
     Task<IEnumerable<Loan>> GetMemberActiveLoansAsync(int memberId);
     Task<IEnumerable<Loan>> GetOverdueLoansAsync();
     Task<IEnumerable<Loan>> GetLoanHistoryAsync(int memberId , int pageNumber ,int pageSize);

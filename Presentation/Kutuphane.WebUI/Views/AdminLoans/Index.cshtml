@@ -1,0 +1,115 @@
+﻿@model IEnumerable<Kutuphane.Application.Dtos.LoanDtos.ResultLoanDto>
+
+@{
+    ViewData["Title"] = "Ödünç İşlemleri";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-primary"><i class="bi bi-arrow-left-right"></i> Ödünç Takip Listesi</h2>
+    <div>
+        <a asp-action="Overdue" class="btn btn-outline-danger me-2">
+            <i class="bi bi-exclamation-circle"></i> Gecikmişleri Göster
+        </a>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Kitap Ödünç Ver
+        </a>
+        
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Üye</th>
+                        <th>Kitap Bilgisi</th>
+                        <th>Veriliş Tarihi</th>
+                        <th>Son Tarih</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var loan in Model)
+                    {
+                        var rowClass = loan.IsOverdue ? "table-danger" : "";
+
+                        <tr class="@rowClass">
+                            <td>
+                                <div class="fw-bold">@loan.MemberName</div>
+                            </td>
+                            <td>
+                                <i class="bi bi-book"></i> @loan.BookTitle <br />
+                                <small class="text-muted">Kopya No: @loan.CopyNumber</small>
+                            </td>
+                            <td>@loan.LoanDate?.ToShortDateString()</td>
+                            <td>
+                                @loan.DueDate?.ToShortDateString()
+                                @if (loan.IsOverdue)
+                                {
+                                    <br />
+                            
+                                    <span class="badge bg-danger">@loan.OverdueDays gün gecikti!</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">@loan.Status</span>
+                            </td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-warning btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#returnModal-@loan.Id">
+                                    <i class="bi bi-box-arrow-in-down-left"></i> İade Al
+                                </button>
+
+                                <div class="modal fade" id="returnModal-@loan.Id" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-warning">
+                                                <h5 class="modal-title">İade İşlemi</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form asp-action="ReturnBook" method="post">
+                                                <div class="modal-body text-start">
+                                                    <input type="hidden" name="id" value="@loan.Id" />
+                                                    <p><strong>@loan.BookTitle</strong> kitabı <strong>@loan.MemberName</strong> adlı üyeden iade alınıyor.</p>
+
+                                                    @if (loan.IsOverdue)
+                                                    {
+                                                        <div class="alert alert-danger">
+                                                            Bu kitap <strong>@loan.OverdueDays gün</strong> gecikmiş!
+                                                            Lütfen ceza işlemini kontrol ediniz.
+                                                        </div>
+                                                    }
+
+                                                    <div class="mb-3">
+                                                        <label class="form-label">İade Notu (Opsiyonel)</label>
+                                                        <textarea name="returnNotes" class="form-control" placeholder="Örn: Kitap kapağı yıpranmış..."></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                    <button type="submit" class="btn btn-primary">İadeyi Onayla</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-info text-center mt-3">
+                Şu anda aktif (iade edilmemiş) bir ödünç kaydı bulunmuyor.
+            </div>
+        }
+    </div>
+</div>

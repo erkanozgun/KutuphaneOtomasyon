@@ -10,15 +10,24 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <style>
-        body {
+        /* 1. Sayfanın genel scroll'unu kapatıyoruz */
+        html, body {
+            height: 100%;
+            overflow: hidden;
             background-color: #f8f9fa;
         }
 
+        /* 2. Sidebar Ayarları */
         .sidebar {
-            min-height: 100vh;
+            height: 100vh; /* Tam ekran yüksekliği */
+            width: 250px;
             background: #212529;
             color: white;
             transition: all 0.3s;
+            overflow-y: auto; /* Menü çok uzunsa sadece menü scroll olsun */
+            flex-shrink: 0; /* Sidebar'ın daralmasını engelle */
+            display: flex;
+            flex-direction: column;
         }
 
             .sidebar a {
@@ -39,7 +48,10 @@
                 margin-right: 10px;
             }
 
+        /* 3. İçerik Alanı Ayarları */
         .content-wrapper {
+            height: 100vh; /* Tam ekran yüksekliği */
+            overflow-y: auto; /* SADECE içerik scroll olsun */
             width: 100%;
             padding: 20px;
         }
@@ -48,7 +60,7 @@
 <body>
 
     <div class="d-flex">
-        <div class="sidebar d-flex flex-column flex-shrink-0 p-3" style="width: 250px;">
+        <div class="sidebar p-3">
             <a href="/Admin" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
                 <i class="bi bi-shield-lock-fill fs-4 me-2"></i>
                 <span class="fs-4 fw-bold">Admin Panel</span>
@@ -67,17 +79,17 @@
                     </a>
                 </li>
                 <li>
-                    <a asp-controller="AdminBooks" asp-action="Index" class="nav-link">
+                    <a asp-controller="AdminBooks" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminBooks" ? "active" : "")">
                         <i class="bi bi-journal-album"></i> Kitap Yönetimi
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
+                    <a asp-controller="AdminMembers" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "AdminMembers" ? "active" : "")">
                         <i class="bi bi-people"></i> Üye Yönetimi
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link">
+                    <a asp-controller="AdminLoans" asp-action="Index" class="nav-link">
                         <i class="bi bi-arrow-left-right"></i> Ödünç İşlemleri
                     </a>
                 </li>

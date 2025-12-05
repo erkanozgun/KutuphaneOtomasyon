@@ -18,10 +18,12 @@ public class MemberRepository:GenericRepository<Member>,IMemberRepository
 
     public async Task<Member?> GetMemberWithLoansAsync(int memberId)
     {
-        return await _dbSet
+        return await _context.Members
+            .Include(m => m.Loans)                
+                .ThenInclude(l => l.Copy)       
+                    .ThenInclude(c => c.Book)   
             .Include(m => m.Loans)
-                .ThenInclude(l => l.Copy)
-                    .ThenInclude(c => c.Book)
+                .ThenInclude(l => l.LoanedByUser) 
             .FirstOrDefaultAsync(m => m.Id == memberId);
     }
 
