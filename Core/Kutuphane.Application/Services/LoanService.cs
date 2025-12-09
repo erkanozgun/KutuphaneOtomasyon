@@ -291,4 +291,13 @@ public class LoanService : ILoanService
         var activeLoans = await _loanRepository.GetActiveLoansAsync();
         return activeLoans.Select(MapToDto).ToList();
     }
+
+    public async Task<IEnumerable<ResultLoanDto>> GetAllLoansAsync()
+    {
+    
+        var loans = await _loanRepository.GetAllAsync();
+
+     
+        return loans.Select(MapToDto).ToList();
+    }
 }

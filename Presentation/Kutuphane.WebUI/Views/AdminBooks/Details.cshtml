@@ -4,139 +4,213 @@
     ViewData["Title"] = "Kitap Detayları";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    // Basit istatistikler
+    // İstatistikler
     var totalCopies = Model.Copies.Count();
     var availableCopies = Model.Copies.Count(c => c.Status == "Rafta");
     var borrowedCopies = Model.Copies.Count(c => c.Status == "Oduncte");
+    var lostCopies = Model.Copies.Count(c => c.Status == "Kayıp" || c.Status == "Bakımda");
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary"><i class="bi bi-info-circle"></i> Kitap Detayları</h2>
-    <a asp-action="Index" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Listeye Dön
-    </a>
-</div>
-
-<div class="row">
-    <div class="col-md-4 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-body text-center">
-                @if (!string.IsNullOrEmpty(Model.Book.ImageUrl))
-                {
-                    <img src="@Model.Book.ImageUrl" class="img-fluid rounded shadow mb-3" style="max-height: 300px;">
-                }
-                else
-                {
-                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3 mx-auto" style="height: 250px; width: 180px;">
-                        <i class="bi bi-book display-1 text-secondary"></i>
-                    </div>
-                }
-
-                <h4 class="fw-bold">@Model.Book.Title</h4>
-                <p class="text-muted mb-1">@Model.Book.Author</p>
-                <span class="badge bg-info text-dark">@Model.Book.Category</span>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between">
-                    <span class="fw-bold">ISBN:</span> <span>@Model.Book.ISBN</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span class="fw-bold">Yayın Yılı:</span> <span>@Model.Book.PublicationYear</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span class="fw-bold">Yayınevi:</span> <span>@(Model.Book.Publisher ?? "-")</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between">
-                    <span class="fw-bold">Sayfa:</span> <span>@Model.Book.PageCount</span>
-                </li>
-            </ul>
-            <div class="card-body">
-                <a asp-action="Edit" asp-route-id="@Model.Book.Id" class="btn btn-warning w-100">
-                    <i class="bi bi-pencil-square"></i> Bilgileri Düzenle
-                </a>
-            </div>
+<div class="container-fluid px-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-0"><i class="bi bi-info-circle me-2"></i>Kitap Detayları</h2>
+            <p class="text-muted small mb-0">Kitap bilgileri, istatistikler ve kopya yönetimi</p>
         </div>
+        <a asp-action="Index" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i> Listeye Dön
+        </a>
     </div>
 
-    <div class="col-md-8">
+    <div class="row">
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-lg rounded-3 sticky-top" style="top: 20px; z-index: 1;">
+                <div class="card-body text-center p-4">
+                    <div class="mb-4 position-relative d-inline-block">
+                        @if (!string.IsNullOrEmpty(Model.Book.ImageUrl))
+                        {
+                            <img src="@Model.Book.ImageUrl" class="img-fluid rounded shadow" style="max-height: 320px; width: auto;">
+                        }
+                        else
+                        {
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center shadow-sm mx-auto border" style="height: 300px; width: 200px;">
+                                <i class="bi bi-book display-1 text-secondary opacity-25"></i>
+                            </div>
+                        }
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info text-dark shadow-sm border border-light">
+                            @Model.Book.Category
+                        </span>
+                    </div>
 
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card bg-primary text-white text-center p-3 shadow-sm">
-                    <h3 class="fw-bold m-0">@totalCopies</h3>
-                    <small>Toplam Kopya</small>
+                    <h4 class="fw-bold text-dark mb-1">@Model.Book.Title</h4>
+                    <p class="text-muted fst-italic mb-3">@Model.Book.Author</p>
+
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Book.Id" class="btn btn-warning shadow-sm">
+                            <i class="bi bi-pencil-square me-1"></i> Bilgileri Düzenle
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-success text-white text-center p-3 shadow-sm">
-                    <h3 class="fw-bold m-0">@availableCopies</h3>
-                    <small>Rafta (Müsait)</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-warning text-dark text-center p-3 shadow-sm">
-                    <h3 class="fw-bold m-0">@borrowedCopies</h3>
-                    <small>Ödünçte</small>
-                </div>
+
+                <ul class="list-group list-group-flush border-top">
+                    <li class="list-group-item d-flex justify-content-between py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-upc-scan me-2"></i>ISBN</span>
+                        <span class="fw-bold font-monospace">@Model.Book.ISBN</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-calendar3 me-2"></i>Yıl</span>
+                        <span class="fw-bold">@Model.Book.PublicationYear</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-building me-2"></i>Yayınevi</span>
+                        <span class="fw-bold">@(Model.Book.Publisher ?? "-")</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between py-3 px-4">
+                        <span class="text-muted"><i class="bi bi-file-text me-2"></i>Sayfa</span>
+                        <span class="fw-bold">@Model.Book.PageCount</span>
+                    </li>
+                </ul>
+
+                @if (!string.IsNullOrEmpty(Model.Book.Description))
+                {
+                    <div class="card-footer bg-light p-4">
+                        <h6 class="fw-bold small text-uppercase text-muted">Açıklama</h6>
+                        <p class="small text-secondary mb-0">@Model.Book.Description</p>
+                    </div>
+                }
             </div>
         </div>
 
-        <div class="card shadow-sm">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="m-0 text-primary"><i class="bi bi-list-ol"></i> Kopya Listesi</h5>
-                <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addCopyModal">
-                    <i class="bi bi-plus-lg"></i> Stok Ekle
-                </button>
+        <div class="col-lg-8">
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm border-start border-4 border-primary h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 bg-primary bg-opacity-10 p-3 rounded">
+                                    <i class="bi bi-collection text-primary fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <p class="text-muted small mb-0 text-uppercase fw-bold">Toplam Stok</p>
+                                    <h3 class="mb-0 fw-bold text-dark">@totalCopies</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm border-start border-4 border-success h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 bg-success bg-opacity-10 p-3 rounded">
+                                    <i class="bi bi-check-circle text-success fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <p class="text-muted small mb-0 text-uppercase fw-bold">Rafta (Müsait)</p>
+                                    <h3 class="mb-0 fw-bold text-dark">@availableCopies</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm border-start border-4 border-warning h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0 bg-warning bg-opacity-10 p-3 rounded">
+                                    <i class="bi bi-person-workspace text-warning fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <p class="text-muted small mb-0 text-uppercase fw-bold">Ödünçte</p>
+                                    <h3 class="mb-0 fw-bold text-dark">@borrowedCopies</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-4">Kopya No</th>
-                                <th>Raf Konumu</th>
-                                <th>Durum</th>
-                                <th class="text-end pe-4">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var copy in Model.Copies)
-                            {
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="m-0 fw-bold text-secondary"><i class="bi bi-list-check me-2"></i>Kopya Listesi</h5>
+                    <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#addCopyModal">
+                        <i class="bi bi-plus-lg me-1"></i> Stok Ekle
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light text-secondary small text-uppercase">
                                 <tr>
-                                    <td class="ps-4 font-monospace">@copy.CopyNumber</td>
-                                    <td><i class="bi bi-geo-alt"></i> @copy.ShelfLocation</td>
-                                    <td>
-                                        @if (copy.Status == "Rafta")
-                                        {
-                                            <span class="badge bg-success">Rafta</span>
-                                        }
-                                        else if (copy.Status == "Oduncte")
-                                        {
-                                            <span class="badge bg-warning text-dark">Ödünçte</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">@copy.Status</span>
-                                        }
-                                    </td>
-                                    <td class="text-end pe-4">
-                                        <form asp-action="DeleteCopy" method="post" style="display:inline;" onsubmit="return confirm('Bu kopyayı silmek istediğinize emin misiniz?');">
-                                            <input type="hidden" name="copyId" value="@copy.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Kopyayı Sil">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
+                                    <th class="ps-4">Kopya No</th>
+                                    <th>Durum</th>
+                                    <th>Kondisyon</th>
+                                    <th>Raf Konumu</th>
+                                    <th class="text-end pe-4">İşlemler</th>
                                 </tr>
-                            }
-                            @if (!Model.Copies.Any())
-                            {
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Hiç kopya bulunamadı.</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody id="detailsCopiesTableBody">
+                                @foreach (var copy in Model.Copies)
+                                {
+                                    // JS için güvenli stringler
+                                    var safeShelf = (copy.ShelfLocation ?? "").Replace("'", "\\'");
+                                    var safeCondition = (copy.Condition ?? "").Replace("'", "\\'");
+
+                                    <tr>
+                                        <td class="ps-4 fw-bold text-primary font-monospace">@copy.CopyNumber</td>
+                                        <td>
+                                            @if (copy.Status == "Rafta")
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3">Rafta</span>
+                                            }
+                                            else if (copy.Status == "Oduncte")
+                                            {
+
+                                                <span class="badge bg-warning text-dark rounded-pill px-3">Ödünçte</span>
+                                            }
+                                            else if (copy.Status == "Kayıp")
+                                            {
+
+                                                <span class="badge bg-danger rounded-pill px-3">Kayıp</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span class="badge bg-secondary rounded-pill px-3">@copy.Status</span>
+                                            }
+                                        </td>
+                                        <td class="text-muted small">@copy.Condition</td>
+                                        <td class="fw-bold text-dark">@copy.ShelfLocation</td>
+                                        <td class="text-end pe-4">
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-outline-warning border-0"
+                                                        title="Düzenle"
+                                                        onclick="openUpdateModal(@copy.Id, '@safeShelf', '@safeCondition', '@copy.Status')">
+                                                    <i class="bi bi-pencil-square fs-6"></i>
+                                                </button>
+
+                                                <button class="btn btn-sm btn-outline-danger border-0"
+                                                        title="Sil"
+                                                        onclick="deleteCopy(@copy.Id, this)">
+                                                    <i class="bi bi-trash fs-6"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Copies.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center py-5 text-muted">
+                                            <i class="bi bi-box-seam fs-1 d-block mb-2 opacity-25"></i>
+                                            Henüz bu kitaba ait kopya eklenmemiş.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -144,30 +218,158 @@
 </div>
 
 <div class="modal fade" id="addCopyModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Stok Ekle</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title"><i class="bi bi-plus-square me-2"></i>Stok Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form asp-action="AddCopies" method="post">
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <input type="hidden" name="bookId" value="@Model.Book.Id" />
-                    <p class="text-center"><strong>@Model.Book.Title</strong> kitabına kopya ekleniyor.</p>
-                    <div class="mb-3">
-                        <label class="form-label">Adet</label>
-                        <input type="number" name="count" class="form-control" value="1" min="1" max="50" required />
+
+                    <div class="alert alert-light border text-center mb-3">
+                        <strong class="text-success">@Model.Book.Title</strong> <br> kitabına yeni kopyalar ekleniyor.
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Raf Konumu</label>
-                        <input type="text" name="shelfLocation" class="form-control" placeholder="Örn: A-12" required />
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="number" name="count" id="copyCount" class="form-control" value="1" min="1" max="50" required />
+                                <label for="copyCount">Adet</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-floating">
+                                <input type="text" name="shelfLocation" id="shelfLoc" class="form-control" placeholder="A-12" required />
+                                <label for="shelfLoc">Raf Konumu</label>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="submit" class="btn btn-success">Kaydet</button>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success px-4">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="updateCopyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Kopya Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="updateCopyId" />
+
+                <div class="form-floating mb-3">
+                    <input type="text" id="updateShelfLocation" class="form-control" placeholder="Raf" required />
+                    <label for="updateShelfLocation">Raf Konumu</label>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select id="updateCondition" class="form-select">
+                                <option value="Yeni">Yeni</option>
+                                <option value="İyi">İyi</option>
+                                <option value="Yıpranmış">Yıpranmış</option>
+                                <option value="Hasarlı">Hasarlı</option>
+                            </select>
+                            <label for="updateCondition">Kondisyon</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select id="updateStatus" class="form-select">
+                                <option value="Rafta">Rafta</option>
+                                <option value="Oduncte">Ödünçte</option>
+                                <option value="Kayıp">Kayıp</option>
+                                <option value="Bakımda">Bakımda</option>
+                            </select>
+                            <label for="updateStatus">Statü</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert alert-warning border small mt-3 mb-0 d-flex align-items-center">
+                    <i class="bi bi-exclamation-circle me-2 fs-4"></i>
+                    <div>
+                        <strong>Dikkat:</strong> 'Ödünçte' olan bir kitabın durumunu buradan değiştirmeyiniz. Lütfen iade işlemini kullanınız.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary px-4" onclick="submitUpdateCopy()">Değişiklikleri Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // --- SİLME İŞLEMİ (AJAX) ---
+        function deleteCopy(copyId, btn) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu kopya silinecek!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/AdminBooks/DeleteCopy', { copyId: copyId }, function (response) {
+                        if (response.success) {
+                            Swal.fire({ icon: 'success', title: 'Silindi', text: response.message, timer: 1000, showConfirmButton: false });
+                            // Satırı tablodan kaldır
+                            $(btn).closest('tr').fadeOut(500, function(){ $(this).remove(); });
+                            // İstatistikleri güncellemek için sayfayı yenilemek en temizidir
+                            setTimeout(() => location.reload(), 1200);
+                        } else {
+                            Swal.fire('Hata', response.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        // --- GÜNCELLEME MODALI AÇ ---
+        var updateModal = new bootstrap.Modal(document.getElementById('updateCopyModal'));
+
+        function openUpdateModal(copyId, shelf, condition, status) {
+            $('#updateCopyId').val(copyId);
+            $('#updateShelfLocation').val(shelf);
+            $('#updateCondition').val(condition);
+            $('#updateStatus').val(status);
+            updateModal.show();
+        }
+
+        // --- GÜNCELLEME KAYDET (AJAX) ---
+        function submitUpdateCopy() {
+            var id = $('#updateCopyId').val();
+            var shelf = $('#updateShelfLocation').val();
+            var condition = $('#updateCondition').val();
+            var status = $('#updateStatus').val();
+
+            $.post('/AdminBooks/UpdateCopy', {
+                id: id, shelfLocation: shelf, condition: condition, status: status
+            }, function (response) {
+                if (response.success) {
+                    Swal.fire({ icon: 'success', title: 'Güncellendi', text: response.message, timer: 1000, showConfirmButton: false });
+                    updateModal.hide();
+                    // Sayfayı yenileyerek tabloyu ve istatistikleri güncelle
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    Swal.fire('Hata', response.message, 'error');
+                }
+            });
+        }
+    </script>
+}

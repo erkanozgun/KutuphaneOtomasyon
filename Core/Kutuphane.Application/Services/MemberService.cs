@@ -248,11 +248,28 @@ public class MemberService:IMemberService
         await _memberRepository.DeleteAsync(id);
     }
 
+    
     private async Task<string> GenerateMemberNumberAsync()
     {
         var year = DateTime.Now.Year;
         var count = await _memberRepository.CountAsync();
-        return $"UYE-{year}-{(count + 1):D4}"; // Örnek: UYE-2025-0001
+        var nextIndex = count + 1;
+
+        while (true)
+        {
+            var candidateNumber = $"UYE-{year}-{nextIndex:D4}";
+
+            var existingMember = await _memberRepository.FirstOrDefaultAsync(m => m.MemberNumber == candidateNumber);
+
+            if (existingMember == null)
+            {
+               
+                return candidateNumber;
+            }
+
+            
+            nextIndex++;
+        }
     }
 
     private ResultMemberDto MapToDto(Member member)

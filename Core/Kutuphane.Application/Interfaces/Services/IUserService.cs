@@ -1,4 +1,5 @@
 ﻿using Kutuphane.Application.Dtos.AuthDtos;
+using Kutuphane.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,8 @@ namespace Kutuphane.Application.Interfaces.Services
         Task<UserDto> GetUserByIdAsync(int id);
         Task CreateUserAsync(CreateUserDto dto);
         Task DeleteUserAsync(int id);
+        Task UpdateUserStatusAsync(int id); 
+        Task UpdateUserRoleAsync(int id, UserRole newRole);
+        Task ResetUserPasswordAsync(int id, string newPassword);
     }
 }

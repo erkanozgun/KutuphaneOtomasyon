@@ -1,150 +1,254 @@
 ﻿@model List<Kutuphane.Application.Dtos.BookDtos.ResultBookDto>
-@{
-    ViewData["Title"] = "Kitaplar";
-    Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Query string'den değerleri al
-    var search = Context.Request.Query["search"].ToString();
-    var category = Context.Request.Query["category"].ToString();
-    var author = Context.Request.Query["author"].ToString();
-    var pages = Context.Request.Query["pages"].ToString();
-    var available = Context.Request.Query["available"].ToString() == "true";
-    var categories = Model.Select(b => b.Category).Distinct().OrderBy(c => c).ToList();
+@{
+    ViewData["Title"] = "Kütüphane Arşivi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var categories = ViewBag.Categories as List<string>;
 }
 
-<div class="container" style="margin-top:40px;">
+<div class="container py-5">
+
     <div class="row">
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 20px; z-index: 1;">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h5 class="fw-bold text-primary"><i class="bi bi-sliders"></i> Filtrele</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Books" asp-action="Index" method="get">
 
-        <!-- SIDEBAR -->
-        <div class="col-lg-3 col-md-4">
-            <div class="card p-3 mb-4">
-                <h5>Filtrele</h5>
-                <hr>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Arama</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+                                <input type="text" name="search" value="@ViewBag.CurrentSearch" class="form-control border-start-0 bg-light" placeholder="Kitap, ISBN...">
+                            </div>
+                        </div>
 
-                <form asp-controller="Books" asp-action="Index" method="get">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Kategori</label>
+                            <select name="category" class="form-select bg-light">
+                                <option value="">Tüm Kategoriler</option>
+                                @if (categories != null)
+                                {
+                                    foreach (var cat in categories)
+                                    {
+                                        <!option value="@cat" @(ViewBag.CurrentCategory == cat ? "selected" : "")>@cat</!option>
+                                    }
+                                }
+                            </select>
+                        </div>
 
-                    <!-- Arama -->
-                    <div class="mb-3">
-                        <label class="form-label">Kitap Ara</label>
-                        <input type="text" name="search" value="@search" class="form-control" placeholder="Kitap adı...">
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Yazar</label>
+                            <input type="text" name="author" value="@ViewBag.CurrentAuthor" class="form-control bg-light" placeholder="Yazar adı...">
+                        </div>
 
-                    <!-- Kategori -->
-                    <div class="mb-3">
-                        <select name="category" class="form-select">
-                            <option value="">Hepsi</option>
-                            @foreach (var cat in categories)
-                            {
-                                <option value="@cat" selected="@(cat == category)">@cat</option>
-                            }
-                        </select>
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted text-uppercase fw-bold">Sayfa Aralığı</label>
+                            <select name="pages" class="form-select bg-light">
+                                <option value="">Farketmez</option>
+                                <!option value="0-200" @(ViewBag.CurrentPages == "0-200" ? "selected" : "")>0 - 200 Sayfa</!option>
+                                <!option value="200-400" @(ViewBag.CurrentPages == "200-400" ? "selected" : "")>200 - 400 Sayfa</!option>
+                                <!option value="400-600" @(ViewBag.CurrentPages == "400-600" ? "selected" : "")>400 - 600 Sayfa</!option>
+                                <!option value="600" @(ViewBag.CurrentPages == "600" ? "selected" : "")>600+ Sayfa</!option>
+                            </select>
+                        </div>
 
-                    <!-- Yazar -->
-                    <div class="mb-3">
-                        <label class="form-label">Yazar</label>
-                        <input type="text" name="author" value="@author" class="form-control" placeholder="Yazar adı...">
-                    </div>
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" name="available" value="true" id="availableCheck" @(ViewBag.CurrentAvailable == true ? "checked" : "")>
+                            <label class="form-check-label small" for="availableCheck">Sadece Müsait Olanlar</label>
+                        </div>
 
-                    <!-- Sayfa Sayısı -->
-                    <div class="mb-3">
-                        <label class="form-label">Sayfa Sayısı</label>
-                        <select name="pages" class="form-select">
-                            <option value="">Hepsi</option>
-                            <option value="0-200" selected="@(pages == "0-200")">0 - 200</option>
-                            <option value="200-400" selected="@(pages == "200-400")">200 - 400</option>
-                            <option value="400-600" selected="@(pages == "400-600")">400 - 600</option>
-                            <option value="600" selected="@(pages == "600")">600+</option>
-                        </select>
-                    </div>
-
-                    <!-- Müsait Olanlar -->
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="available" value="true" checked="@available">
-                        <label class="form-check-label">Sadece müsait olanlar</label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">Filtrele</button>
-                    <a asp-controller="Books" asp-action="Index" class="btn btn-secondary w-100 mt-2">Temizle</a>
-                </form>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Uygula</button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Temizle</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- KİTAPLAR -->
-        <div class="col-lg-9 col-md-8">
-
-            <!-- Sonuç Sayısı -->
-            <div class="mb-3">
-                <h5>@Model.Count Kitap Bulundu</h5>
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">Kitap Arşivi</h4>
+                <span class="badge bg-light text-dark border">@Model.Count sonuç bulundu</span>
             </div>
 
             @if (Model.Count == 0)
             {
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle"></i> Aradığınız kriterlere uygun kitap bulunamadı.
+                <div class="text-center py-5">
+                    <i class="bi bi-emoji-frown display-1 text-muted opacity-25"></i>
+                    <h4 class="mt-3 text-muted">Sonuç bulunamadı.</h4>
+                    <p>Filtreleri değiştirerek tekrar deneyebilirsiniz.</p>
                 </div>
             }
             else
             {
-                <div class="row gy-4">
+                <div class="row row-cols-1 row-cols-md-3 g-4">
                     @foreach (var book in Model)
                     {
-                        <div class="col-lg-3 col-md-6">
-                            <article class="book-card">
-                                @if (book.ImageUrl != null)
-                                {
-                                    <div class="post-img">
-                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id">
-                                            <img style="max-width: 150px; max-height:200px; margin-left: 10px"
-                                                 src="@book.ImageUrl"
-                                                 alt="@book.Title"
-                                                 class="img-fluid">
-                                        </a>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="post-img">
-                                        <img style="max-width: 150px; max-height:200px; margin-left: 10px"
-                                             src="~/BookTemp/assets/img/placeholderBook.png"
-                                             alt="@book.Title"
-                                             class="img-fluid">
-                                    </div>
-                                }
+                        <div class="col">
+                            <div class="catalog-card h-100">
+                                <div class="card-badge @(book.AvailableCopies > 0 ? "badge-success" : "badge-danger")">
+                                    @(book.AvailableCopies > 0 ? "Müsait" : "Tükendi")
+                                </div>
 
-                                <div class="post-content">
-                                    <h3 class="post-title">
-                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id">
-                                            @book.Title
-                                        </a>
-                                    </h3>
-                                    <p class="post-author">@book.Author</p>
-                                    <div class="post-meta">
-                                        <span class="badge bg-primary">@book.Category</span>
-                                        @if (book.AvailableCopies > 0)
-                                        {
-                                            <span class="badge bg-success">@book.AvailableCopies Kopya Müsait</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-danger">Müsait Değil</span>
-                                        }
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <span class="text-muted small">
-                                            <i class="bi bi-book"></i> @book.PageCount sayfa
-                                        </span>
-                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="readmore">
-                                            Detay <i class="bi bi-arrow-right"></i>
+                                <div class="card-img-wrapper">
+                                    @if (!string.IsNullOrEmpty(book.ImageUrl))
+                                    {
+                                        <img src="@book.ImageUrl" alt="@book.Title">
+                                    }
+                                    else
+                                    {
+                                        <div class="placeholder-img"><i class="bi bi-book"></i></div>
+                                    }
+
+                                    <div class="card-overlay">
+                                        <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-light rounded-pill px-4 fw-bold">
+                                            İncele <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
                                 </div>
-                            </article>
+
+                                <div class="card-info">
+                                    <span class="category-text">@book.Category</span>
+                                    <h6 class="book-title text-truncate" title="@book.Title">@book.Title</h6>
+                                    <p class="book-author text-truncate">@book.Author</p>
+
+                                    <div class="card-footer-custom">
+                                        <span><i class="bi bi-layers"></i> @book.PageCount sf.</span>
+                                        <span><i class="bi bi-calendar"></i> @book.PublicationYear</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
             }
         </div>
-
     </div>
 </div>
+
+<style>
+    /* Kartın genel yapısı */
+    .catalog-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        border: 1px solid #f0f0f0;
+    }
+
+        .catalog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+    /* Resim Wrapper */
+    .card-img-wrapper {
+        height: 260px;
+        position: relative;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .card-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+    .catalog-card:hover .card-img-wrapper img {
+        transform: scale(1.05); /* Zoom efekti */
+    }
+
+    .placeholder-img {
+        font-size: 4rem;
+        color: #dee2e6;
+    }
+
+    /* Hover Overlay (Butonun çıkması) */
+    .card-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .catalog-card:hover .card-overlay {
+        opacity: 1;
+    }
+
+    /* Stok Rozeti */
+    .card-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        z-index: 2;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-success {
+        background: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .badge-danger {
+        background: #f8d7da;
+        color: #842029;
+    }
+
+    /* Alt Bilgiler */
+    .card-info {
+        padding: 15px;
+    }
+
+    .category-text {
+        font-size: 0.75rem;
+        color: #0d6efd;
+        font-weight: 600;
+        text-transform: uppercase;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .book-title {
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 5px;
+    }
+
+    .book-author {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+
+    .card-footer-custom {
+        border-top: 1px solid #f0f0f0;
+        padding-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #adb5bd;
+    }
+</style>

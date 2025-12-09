@@ -20,6 +20,7 @@ namespace Kutuphane.Application
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IContactService, ContactService>();
 
             return services;
         }

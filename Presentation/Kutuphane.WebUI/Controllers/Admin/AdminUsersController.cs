@@ -1,5 +1,6 @@
 ﻿using Kutuphane.Application.Dtos.AuthDtos;
 using Kutuphane.Application.Interfaces.Services;
+using Kutuphane.Domain.Enums;
 using Kutuphane.WebUI.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -65,7 +66,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
         {
             try
             {
-                // Kendi kendini silme koruması
+               
                 var currentUser = User.Identity.Name;
                 var targetUser = await _userService.GetUserByIdAsync(id);
 
@@ -81,6 +82,80 @@ namespace Kutuphane.WebUI.Controllers.Admin
             catch (Exception ex)
             {
                 TempData["Error"] = "Silme hatası: " + ex.Message;
+            }
+            return RedirectToAction("Index");
+        }
+   
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            try
+            {
+               
+                var currentUser = User.Identity.Name;
+                var targetUser = await _userService.GetUserByIdAsync(id);
+
+                if (targetUser.Username == currentUser)
+                {
+                    TempData["Error"] = "Güvenlik gereği kendi hesabınızı pasife alamazsınız.";
+                    return RedirectToAction("Index");
+                }
+
+        
+                await _userService.UpdateUserStatusAsync(id);
+                TempData["Success"] = "Kullanıcı durumu güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hata: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeRole(int id, UserRole newRole)
+        {
+            try
+            {
+            
+                var currentUser = User.Identity.Name;
+                var targetUser = await _userService.GetUserByIdAsync(id);
+
+                if (targetUser.Username == currentUser)
+                {
+                    TempData["Error"] = "Kendi yetki seviyenizi değiştiremezsiniz.";
+                    return RedirectToAction("Index");
+                }
+
+                await _userService.UpdateUserRoleAsync(id, newRole);
+                TempData["Success"] = "Kullanıcı yetkisi güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hata: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(int id, string newPassword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(newPassword)) throw new Exception("Şifre boş olamaz.");
+
+                await _userService.ResetUserPasswordAsync(id, newPassword);
+                TempData["Success"] = "Kullanıcı şifresi başarıyla sıfırlandı.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Hata: " + ex.Message;
             }
             return RedirectToAction("Index");
         }

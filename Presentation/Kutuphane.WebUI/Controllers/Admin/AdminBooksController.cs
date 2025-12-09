@@ -1,4 +1,5 @@
 ﻿using Kutuphane.Application.Dtos.BookDtos;
+using Kutuphane.Application.Dtos.CopyDtos;
 using Kutuphane.Application.Exceptions;
 using Kutuphane.Application.Interfaces.Services;
 using Kutuphane.WebUI.Models.ViewModels;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kutuphane.WebUI.Controllers.Admin
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Librarian")]
     public class AdminBooksController : Controller
     {
         private readonly IBookService _bookService;
@@ -19,52 +20,12 @@ namespace Kutuphane.WebUI.Controllers.Admin
             _copyService = copyService;
         }
 
-   
         public async Task<IActionResult> Index(string searchTerm)
         {
-          
+            // Servis katmanında SearchBooksAsync yoksa GetAllBooksAsync kullanıp LINQ ile filtreleyebilirsiniz.
             var books = await _bookService.SearchBooksAsync(searchTerm);
-         
             ViewBag.SearchTerm = searchTerm;
-
             return View(books);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                await _bookService.DeleteBookAsync(id);
-                TempData["Success"] = "Kitap ve tüm kopyaları başarıyla silindi.";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = ex.Message;
-            }
-            return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetCopies(int bookId)
-        {
-            var copies = await _copyService.GetCopiesByBookIdAsync(bookId);
-            return Json(copies);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> DeleteCopy(int copyId)
-        {
-            try
-            {
-                await _copyService.DeleteCopyAsync(copyId);
-                return Json(new { success = true, message = "Kopya silindi." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
         }
 
         [HttpGet]
@@ -77,31 +38,24 @@ namespace Kutuphane.WebUI.Controllers.Admin
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BookCreateViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            if (!ModelState.IsValid) return View(model);
 
             try
             {
                 string? imageUrl = null;
-
                 if (model.ImageFile != null)
                 {
                     var extension = Path.GetExtension(model.ImageFile.FileName);
                     var newImageName = Guid.NewGuid() + extension;
                     var location = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/img/books");
 
-                    if (!Directory.Exists(location))
-                        Directory.CreateDirectory(location);
+                    if (!Directory.Exists(location)) Directory.CreateDirectory(location);
 
                     var fullPath = Path.Combine(location, newImageName);
-
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
                         await model.ImageFile.CopyToAsync(stream);
                     }
-
                     imageUrl = "/img/books/" + newImageName;
                 }
 
@@ -119,11 +73,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 };
 
                 await _bookService.CreateBookAsync(createDto);
-
                 TempData["Success"] = "Kitap başarıyla eklendi.";
                 return RedirectToAction("Index");
             }
-            catch (DuplicateException ex)
+            catch (DuplicateException)
             {
                 ModelState.AddModelError("ISBN", "Bu ISBN numarası başka bir kitapta kayıtlı.");
                 return View(model);
@@ -139,7 +92,6 @@ namespace Kutuphane.WebUI.Controllers.Admin
         public async Task<IActionResult> Edit(int id)
         {
             var bookDto = await _bookService.GetBookByIdAsync(id);
-
             if (bookDto == null) return NotFound();
 
             var model = new BookEditViewModel
@@ -168,7 +120,6 @@ namespace Kutuphane.WebUI.Controllers.Admin
             try
             {
                 string? finalImageUrl = model.ExistingImageUrl;
-
                 if (model.ImageFile != null)
                 {
                     var extension = Path.GetExtension(model.ImageFile.FileName);
@@ -178,12 +129,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
                     if (!Directory.Exists(location)) Directory.CreateDirectory(location);
 
                     var fullPath = Path.Combine(location, newImageName);
-
                     using (var stream = new FileStream(fullPath, FileMode.Create))
                     {
                         await model.ImageFile.CopyToAsync(stream);
                     }
-
                     finalImageUrl = "/img/books/" + newImageName;
                 }
 
@@ -197,15 +146,15 @@ namespace Kutuphane.WebUI.Controllers.Admin
                     PublicationYear = model.PublicationYear,
                     Publisher = model.Publisher,
                     Description = model.Description,
-                    Language = "Türkçe",
+                    Language = "Türkçe", // Varsayılan veya modelden gelebilir
                     ImageUrl = finalImageUrl
                 };
-                await _bookService.UpdateBookAsync(model.Id, updateDto);
 
+                await _bookService.UpdateBookAsync(model.Id, updateDto);
                 TempData["Success"] = "Kitap başarıyla güncellendi.";
                 return RedirectToAction("Index");
             }
-            catch (DuplicateException ex)
+            catch (DuplicateException)
             {
                 ModelState.AddModelError("ISBN", "Bu ISBN numarası başka bir kitapta kayıtlı.");
                 return View(model);
@@ -219,6 +168,43 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _bookService.DeleteBookAsync(id);
+                TempData["Success"] = "Kitap ve tüm kopyaları başarıyla silindi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Silme hatası: " + ex.Message;
+            }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateCopy(int id, string shelfLocation, string condition, string status)
+        {
+            try
+            {
+                var updateDto = new UpdateCopyDto
+                {
+                    ShelfLocation = shelfLocation,
+                    Condition = condition,
+                    Status = status 
+                };
+
+                await _copyService.UpdateCopyAsync(id, updateDto);
+                return Json(new { success = true, message = "Kopya başarıyla güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Güncelleme hatası: " + ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddCopies(int bookId, int count, string shelfLocation)
         {
             try
@@ -227,15 +213,34 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 if (string.IsNullOrWhiteSpace(shelfLocation)) throw new Exception("Raf konumu belirtmelisiniz.");
 
                 await _copyService.AddCopiesAsync(bookId, count, shelfLocation);
-
                 TempData["Success"] = $"{count} adet kopya başarıyla eklendi.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Kopya eklenirken hata: " + ex.Message;
             }
-
             return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCopies(int bookId)
+        {
+            var copies = await _copyService.GetCopiesByBookIdAsync(bookId);
+            return Json(copies);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCopy(int copyId)
+        {
+            try
+            {
+                await _copyService.DeleteCopyAsync(copyId);
+                return Json(new { success = true, message = "Kopya başarıyla silindi." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpGet]
@@ -246,13 +251,11 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
             var copies = await _copyService.GetCopiesByBookIdAsync(id);
 
-          
             var model = new BookAdminDetailsViewModel
             {
                 Book = book,
                 Copies = copies
             };
-
             return View(model);
         }
     }

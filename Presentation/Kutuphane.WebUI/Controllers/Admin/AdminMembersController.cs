@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kutuphane.WebUI.Controllers.Admin
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Librarian")]
     public class AdminMembersController : Controller
     {
         private readonly IMemberService _memberService;

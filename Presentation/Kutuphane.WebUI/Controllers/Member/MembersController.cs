@@ -1,26 +1,30 @@
 ﻿using Kutuphane.Application.Dtos.AuthDtos;
 using Kutuphane.Application.Dtos.MemberDtos;
 using Kutuphane.Application.Interfaces.Services;
+using Kutuphane.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Kutuphane.WebUI.Controllers.Member
 {
+    [Authorize]
     public class MembersController : Controller
     {
         private readonly IAuthService _authService;
         private readonly IMemberService _memberService;
         private readonly ILoanService _loanService;
-        public MembersController(IAuthService authService, IMemberService memberService, ILoanService loanService)
+        private readonly IContactService _contactService;
+        public MembersController(IAuthService authService, IMemberService memberService, ILoanService loanService, IContactService contactService)
         {
             _authService = authService;
             _memberService = memberService;
             _loanService = loanService;
+            _contactService = contactService;
         }
 
         [HttpGet]
-        [Authorize]
+    
         public async Task<IActionResult> Profile()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -31,17 +35,19 @@ namespace Kutuphane.WebUI.Controllers.Member
                 return NotFound();
             }
 
-            // MemberId varsa member bilgilerini çek
+            
             if (user.MemberId.HasValue)
             {
                 var member = await _memberService.GetMemberByIdAsync(user.MemberId.Value);
                 ViewBag.Member = member;
             }
+            var userMessages = await _contactService.GetMessagesByUserIdAsync(userId);
+            ViewBag.UserMessages = userMessages;
 
             return View(user);
         }
         [HttpGet]
-        [Authorize(Roles = "Member")]
+        [Authorize(Roles = "Member,Admin,Libararian")]
         public async Task<IActionResult> MyLoans()
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -66,7 +72,7 @@ namespace Kutuphane.WebUI.Controllers.Member
 
             return View();
         }
-        //Profill Güncelleme
+       
         [HttpGet]
         public async Task<IActionResult> EditProfile()
         {
@@ -82,7 +88,7 @@ namespace Kutuphane.WebUI.Controllers.Member
             {
                 Id = member.Id,
 
-                // BURASI EKLENDİ: Mevcut kullanıcı adını ekrana basıyoruz
+
                 Username = user.Username,
 
                 FirstName = member.FirstName,
@@ -157,8 +163,17 @@ namespace Kutuphane.WebUI.Controllers.Member
                 return View(model);
             }
         }
+        public async Task<IActionResult> MyMessages()
+        {
+            
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        
+         
+            var messages = await _contactService.GetMessagesByUserIdAsync(userId);
+
+            return View(messages);
+        }
+
     }
 }
 

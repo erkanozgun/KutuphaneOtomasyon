@@ -63,8 +63,8 @@ namespace Kutuphane.WebUI.Controllers
                 return RedirectToAction("Details", "Books", new { id = bookId });
             }
         }
-        [HttpPost]
 
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReturnLoan(int loanId)
         {

@@ -139,5 +139,16 @@ namespace Kutuphane.WebUI.Controllers.Admin
 
             ViewBag.Books = new SelectList(books, "Id", "Title");
         }
+ 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+           
+            var loan = await _loanService.GetLoanByIdAsync(id);
+
+            if (loan == null) return NotFound();
+
+            return View(loan);
+        }
     }
 }

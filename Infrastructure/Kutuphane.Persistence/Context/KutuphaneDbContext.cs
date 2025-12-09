@@ -21,6 +21,7 @@ public class KutuphaneDbContext:DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Loan> Loans { get; set; }
     public DbSet<Member> Members { get; set; }
+    public DbSet<ContactMessage> ContactMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +32,7 @@ public class KutuphaneDbContext:DbContext
         modelBuilder.Entity<User>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Loan>().HasQueryFilter(x => !x.IsDeleted);
         modelBuilder.Entity<Member>().HasQueryFilter(x => !x.IsDeleted);
+        modelBuilder.Entity<ContactMessage>().HasQueryFilter(x => !x.IsDeleted);
 
   
     }
@@ -57,8 +59,7 @@ public class KutuphaneDbContext:DbContext
     }
     private void SeedData(ModelBuilder modelBuilder)
     {
-        // İlk Admin kullanıcısı
-        // Şifre: Admin123! (BCrypt ile hashlenmiş)
+      
         modelBuilder.Entity<User>().HasData(new User
         {
             Id = 1,

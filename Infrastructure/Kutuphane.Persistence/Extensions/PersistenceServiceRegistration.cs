@@ -31,6 +31,7 @@ public static class PersistenceServiceRegistration
         services.AddScoped<IMemberRepository, MemberRepository>();
         services.AddScoped<ILoanRepository, LoanRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IContactMessageRepository, ContactMessageRepository>();
 
         return services;
     }

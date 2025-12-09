@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Kutuphane.Application.Dtos.AuthDtos.UserDto>
+﻿@using Kutuphane.Domain.Enums
+@model IEnumerable<Kutuphane.Application.Dtos.AuthDtos.UserDto>
 
 @{
     ViewData["Title"] = "Personel Yönetimi";
@@ -6,77 +7,126 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="text-primary"><i class="bi bi-shield-lock"></i> Personel ve Adminler</h2>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-person-plus-fill"></i> Yeni Personel Ekle
+    <div>
+        <h2 class="text-primary fw-bold mb-0"><i class="bi bi-shield-lock-fill"></i> Personel & Kullanıcılar</h2>
+        <p class="text-muted small mb-0">Sistemdeki tüm kullanıcıların yetki ve durum yönetimi</p>
+    </div>
+    <a asp-action="Create" class="btn btn-primary shadow-sm">
+        <i class="bi bi-person-plus-fill me-2"></i> Yeni Personel Ekle
     </a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body">
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-secondary">
                     <tr>
-                        <th>Kullanıcı Bilgisi</th>
-                        <th>Rol</th>
+                        <th class="ps-4 py-3">Kullanıcı</th>
+                        <th>Rol & Yetki</th>
                         <th>Durum</th>
-                        <th>Son Giriş</th>
-                        <th class="text-end">İşlemler</th>
+                        <th>Son Erişim</th>
+                        <th class="text-end pe-4">Yönetim</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var user in Model)
                     {
                         <tr>
-                            <td>
+                            <td class="ps-4">
                                 <div class="d-flex align-items-center">
-                                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
-                                        <span class="fs-5 fw-bold text-secondary">
-                                            @user.FirstName.Substring(0, 1)@user.LastName.Substring(0, 1)
-                                        </span>
+                                    <div class="avatar-circle bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                                        @user.FirstName.Substring(0, 1).ToUpper()@user.LastName.Substring(0, 1).ToUpper()
                                     </div>
                                     <div>
                                         <div class="fw-bold text-dark">@user.FullName</div>
-                                        <div class="small text-muted">@@@user.Username | @user.Email</div>
+                                        <div class="small text-muted">@@@user.Username</div>
                                     </div>
                                 </div>
                             </td>
+
                             <td>
-                                @if (user.Role == "Admin")
-                                {
-                                    <span class="badge bg-danger rounded-pill">Yönetici</span>
-                                }
-                                else if (user.Role == "Librarian")
-                                {
-                                    <span class="badge bg-warning text-dark rounded-pill">Personel</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-secondary rounded-pill">Üye</span>
-                                }
-                            </td>
-                            <td>
-                                @if (user.IsActive)
-                                {
-                                    <span class="text-success small"><i class="bi bi-circle-fill"></i> Aktif</span>
-                                }
-                                else
-                                {
-                                    <span class="text-secondary small"><i class="bi bi-circle-fill"></i> Pasif</span>
-                                }
-                            </td>
-                            <td>
-                                <span class="small text-muted">
-                                    @(user.LastLoginDate.HasValue? user.LastLoginDate.Value.ToString("dd.MM.yyyy HH:mm") : "Hiç girmedi")
-                                </span>
-                            </td>
-                            <td class="text-end">
-                                <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="d-inline" onsubmit="return confirm('@user.Username kullanıcısını silmek istediğinize emin misiniz?');">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                <form asp-action="ChangeRole" method="post">
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <select name="newRole" class="form-select form-select-sm border-0 bg-light fw-medium" style="width: 130px; cursor:pointer;" onchange="this.form.submit()">
+                                        <!option value="Admin" class="text-danger" @(user.Role == "Admin" ? "selected" : "")>🛡️ Admin</!option>
+                                        <!option value="Librarian" class="text-warning" @(user.Role == "Librarian" ? "selected" : "")>📚 Personel</!option>
+                                        <!option value="Member" class="text-primary" @(user.Role == "Member" ? "selected" : "")>👤 Üye</!option>
+                                    </select>
                                 </form>
+                            </td>
+
+                            <td>
+                                <form asp-action="ToggleStatus" method="post">
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    @if (user.IsActive)
+                                    {
+                                        <button type="submit" class="btn btn-sm badge rounded-pill bg-success bg-opacity-10 text-success border-0 px-3" title="Pasife Al">
+                                            <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-sm badge rounded-pill bg-secondary bg-opacity-10 text-secondary border-0 px-3" title="Aktife Al">
+                                            <i class="bi bi-dash-circle-fill me-1"></i> Pasif
+                                        </button>
+                                    }
+                                </form>
+                            </td>
+
+                            <td>
+                                <small class="text-muted">
+                                    @(user.LastLoginDate.HasValue? user.LastLoginDate.Value.ToString("dd MMM yyyy, HH:mm") : "-")
+                                </small>
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li>
+                                            <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#resetPasswordModal-@user.Id">
+                                                <i class="bi bi-key me-2 text-warning"></i> Şifre Sıfırla
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-action="Delete" asp-route-id="@user.Id" method="post" onsubmit="return confirm('DİKKAT: @user.FullName kullanıcısını silmek üzeresiniz. Devam edilsin mi?');">
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash me-2"></i> Kullanıcıyı Sil
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="modal fade" id="resetPasswordModal-@user.Id" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Şifre Sıfırla: @user.Username</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form asp-action="ResetPassword" method="post">
+                                                <div class="modal-body text-start">
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Yeni Şifre</label>
+                                                        <input type="text" name="newPassword" class="form-control" required minlength="6" placeholder="Yeni şifreyi giriniz..." />
+                                                        <div class="form-text">Kullanıcı bu şifre ile giriş yapabilecek.</div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                    <button type="submit" class="btn btn-warning">Şifreyi Güncelle</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </td>
                         </tr>
                     }

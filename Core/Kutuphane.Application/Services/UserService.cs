@@ -57,34 +57,33 @@ namespace Kutuphane.Application.Services
             };
         }
 
+        // UserService.cs
+
         public async Task CreateUserAsync(CreateUserDto dto)
         {
-    
+          
             if (await _userRepository.IsUsernameExistsAsync(dto.Username))
                 throw new DuplicateException("User", "Username", dto.Username);
 
             if (await _userRepository.IsEmailExistsAsync(dto.Email))
                 throw new DuplicateException("User", "Email", dto.Email);
 
-
-            var count = await _memberRepository.CountAsync();
-            var memberNumber = $"UYE-{DateTime.Now.Year}-{(count + 1):D4}";
+           
+            var memberNumber = await GenerateUniqueMemberNumberAsync();
 
             var newMember = new Member
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = dto.Email,
-                MemberNumber = memberNumber,
+                MemberNumber = memberNumber, 
                 RegistrationDate = DateTime.Now,
                 Status = MemberStatus.Aktif,
                 Notes = "Sistem tarafından otomatik oluşturulan personel kaydı."
             };
 
-
             await _memberRepository.AddAsync(newMember);
 
-            
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
             var newUser = new User
@@ -94,14 +93,38 @@ namespace Kutuphane.Application.Services
                 Username = dto.Username,
                 Email = dto.Email,
                 PasswordHash = passwordHash,
-                Role = dto.Role, 
+                Role = dto.Role,
                 IsActive = true,
                 CreatedDate = DateTime.Now,
-
                 MemberId = newMember.Id
             };
 
             await _userRepository.AddAsync(newUser);
+        }
+
+       
+        private async Task<string> GenerateUniqueMemberNumberAsync()
+        {
+            var year = DateTime.Now.Year;
+            var count = await _memberRepository.CountAsync();
+            var nextIndex = count + 1;
+
+            while (true)
+            {
+                var candidateNumber = $"UYE-{year}-{nextIndex:D4}";
+
+                // Veritabanında bu numara var mı diye kontrol et (Repository'nizde FirstOrDefaultAsync generic ise çalışır)
+                var existingMember = await _memberRepository.FirstOrDefaultAsync(m => m.MemberNumber == candidateNumber);
+
+                if (existingMember == null)
+                {
+                    // Eğer null ise bu numara boştadır, kullanılabilir.
+                    return candidateNumber;
+                }
+
+                // Eğer doluysa sayacı 1 artırıp tekrar dene
+                nextIndex++;
+            }
         }
 
         public async Task DeleteUserAsync(int id)
@@ -124,6 +147,35 @@ namespace Kutuphane.Application.Services
             }
 
             await _userRepository.DeleteAsync(id);
+        }
+        public async Task UpdateUserStatusAsync(int id)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException("User", id);
+
+            user.IsActive = !user.IsActive;
+
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task UpdateUserRoleAsync(int id, UserRole newRole)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException("User", id);
+
+            user.Role = newRole;
+
+            await _userRepository.UpdateAsync(user);
+        }
+        public async Task ResetUserPasswordAsync(int id, string newPassword)
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) throw new NotFoundException("User", id);
+
+            // Hash the new password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

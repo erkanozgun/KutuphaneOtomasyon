@@ -1,4 +1,5 @@
 ﻿using Kutuphane.Application.Dtos.ReportDtos;
+using Kutuphane.Domain.Entities;
 
 namespace Kutuphane.WebUI.Models.ViewModels
 {
@@ -8,7 +9,7 @@ namespace Kutuphane.WebUI.Models.ViewModels
         public List<OverdueLoanReportDto> OverdueLoans { get; set; }
         public List<PopularBookDto> PopularBooks { get; set; }
 
-        // İleride grafik eklemek istersen:
-        // public MonthlyStatisticsDto MonthlyStats { get; set; }
+        public List<ContactMessage> RecentMessages { get; set; } 
+        public int UnreadMessageCount { get; set; }
     }
 }
