@@ -132,25 +132,24 @@ public class CopyService:ICopyService
 
     public async Task<ResultCopyDto> UpdateCopyAsync(int id, UpdateCopyDto dto)
     {
+      
         var copy = await _copyRepository.GetByIdAsync(id);
         if (copy == null)
         {
-            throw new NotFoundException("Copy", id);
+            throw new Exception($"ID'si {id} olan kopya bulunamadı.");
         }
 
-        // Status değişikliği kontrolü
-        if (Enum.TryParse<CopyStatus>(dto.Status, out var newStatus))
+      
+        if (Enum.TryParse<CopyStatus>(dto.Status, true, out var newStatus))
         {
-            // Eğer Ödünçte durumundaysa ve değiştirilmeye çalışılıyorsa
             if (copy.Status == CopyStatus.Oduncte && newStatus != CopyStatus.Oduncte)
             {
                 var activeLoan = await _loanRepository.GetActiveLoanAsync(id);
                 if (activeLoan != null)
                 {
-                    throw new BusinessException("Cannot change status of copy with active loan. Return the book first.");
+                    throw new Exception("Bu kopya şu an bir üyede (Ödünçte). Durumunu değiştirmek için önce kitabı iade almalısınız.");
                 }
             }
-
             copy.Status = newStatus;
         }
 
@@ -159,9 +158,9 @@ public class CopyService:ICopyService
 
         await _copyRepository.UpdateAsync(copy);
 
+
         return MapToDto(copy);
     }
-
     public async Task DeleteCopyAsync(int copyId)
     {
         var copy = await _copyRepository.GetByIdAsync(copyId);
@@ -173,7 +172,7 @@ public class CopyService:ICopyService
             throw new BusinessException("Bu kopya şu an bir üyede. Silmeden önce iade almalısınız.");
         }
 
-        // 2. Soft Delete
+        
         copy.IsDeleted = true;
         await _copyRepository.UpdateAsync(copy);
     }

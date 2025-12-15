@@ -20,4 +20,5 @@ public interface IMemberService
     Task<ResultMemberDto> UpdateMemberAsync(int id, UpdateMemberDto dto);
     Task DeleteMemberAsync(int id);
     Task UpdateMemberProfileAsync(MemberProfileDto dto);
+    Task RemoveBanAsync(int memberId);
 }

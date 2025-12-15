@@ -13,11 +13,11 @@ namespace Kutuphane.Application.Interfaces.Services
         Task SendMessageAsync(ContactMessageDto dto, int? userId);
         Task<IEnumerable<ContactMessage>> GetUnreadMessagesAsync();
         Task ReplyToMessageAsync(int id, string replyMessage);
-        Task<List<ContactMessage>> GetMessagesByUserIdAsync(int userId);
-
-        Task<IEnumerable<ContactMessage>> GetAllMessagesAsync(); 
-        Task<ContactMessage> GetMessageByIdAsync(int id);        
-        Task DeleteMessageAsync(int id);                         
+        Task<IEnumerable<ResultContactDto>> GetMessagesByUserIdAsync(int userId);
+        Task<IEnumerable<ResultContactDto>> GetMessagesByEmailAsync(string email);
+        Task<IEnumerable<ResultContactDto>> GetAllMessagesAsync();
+        Task<ContactMessage> GetMessageByIdAsync(int id);
+        Task DeleteMessageAsync(int id);
         Task MarkAsReadAsync(int id);
     }
 }

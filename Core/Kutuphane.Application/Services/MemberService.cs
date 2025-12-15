@@ -287,6 +287,7 @@ public class MemberService:IMemberService
             DateOfBirth = member.DateOfBirth,
             RegistrationDate = member.RegistrationDate,
             Status = member.Status.ToString(),
+            BanExpirationDate = member.BanExpirationDate,
             Notes = member.Notes
         };
     }
@@ -341,5 +342,22 @@ public class MemberService:IMemberService
 
 
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task RemoveBanAsync(int memberId)
+    {
+        var member = await _memberRepository.GetByIdAsync(memberId);
+        if (member == null) throw new NotFoundException("Member", memberId);
+
+      
+        member.BanExpirationDate = null;
+        if (member.Status == MemberStatus.Pasif)
+        {
+            member.Status = MemberStatus.Aktif;
+        }
+
+        member.Notes += $" | {DateTime.Now}: Yönetici tarafından ceza/ban kaldırıldı.";
+
+        await _memberRepository.UpdateAsync(member);
     }
 }

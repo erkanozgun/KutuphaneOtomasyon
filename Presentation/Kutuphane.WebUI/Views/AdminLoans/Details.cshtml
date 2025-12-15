@@ -1,179 +1,145 @@
 ﻿@model Kutuphane.Application.Dtos.LoanDtos.ResultLoanDto
 
 @{
-    ViewData["Title"] = "Ödünç Detayı";
+    ViewData["Title"] = "İşlem Detayı";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    var isOverdue = Model.IsOverdue;
-    var statusColor = isOverdue ? "danger" : (Model.Status == "Devam Ediyor" ? "success" : "secondary");
-    var progressVal = 0;
+    // Durum Belirleme
+    bool isReturned = Model.ReturnDate.HasValue;
+    bool isOverdue = !isReturned && Model.DueDate < DateTime.Now;
 
-    // Basit bir progress bar mantığı (Görsel şıklık için)
-    if (Model.LoanDate.HasValue && Model.DueDate.HasValue)
-    {
-        var totalDays = (Model.DueDate.Value - Model.LoanDate.Value).TotalDays;
-        var passedDays = (DateTime.Now - Model.LoanDate.Value).TotalDays;
-        progressVal = totalDays > 0 ? (int)((passedDays / totalDays) * 100) : 0;
-        if (progressVal > 100) progressVal = 100;
-    }
+    string statusColor = isReturned ? "success" : (isOverdue ? "danger" : "primary");
+    string statusText = isReturned ? "İade Edildi" : (isOverdue ? "Gecikmiş" : "Devam Ediyor");
+    string statusIcon = isReturned ? "bi-check-circle-fill" : (isOverdue ? "bi-exclamation-triangle-fill" : "bi-hourglass-split");
 }
 
-<div class="container-fluid px-4 mt-4">
+<div class="container py-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-0">
-                <i class="bi bi-file-earmark-text me-2"></i>İşlem #@Model.Id
-            </h2>
-            <span class="badge bg-@statusColor bg-opacity-10 text-@statusColor border border-@statusColor mt-2">
-                @Model.Status @(isOverdue ? $"- {Model.OverdueDays} Gün Gecikmeli" : "")
-            </span>
-        </div>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Listeye Dön
-        </a>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-lg h-100">
-                <div class="card-header bg-@statusColor text-white py-3">
-                    <h5 class="m-0"><i class="bi bi-calendar-range me-2"></i>Süreç Takibi</h5>
-                </div>
-                <div class="card-body">
-                    <div class="border-start border-2 border-light ms-3 ps-4 position-relative pb-4">
-                        <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-primary border border-white p-2">1</span>
-                        <h6 class="fw-bold text-primary">Veriliş</h6>
-                        <p class="text-muted mb-1 small">@Model.LoanDate?.ToString("dd MMMM yyyy, dddd")</p>
-                        <small class="text-secondary">İşlemi Yapan: @Model.LoanedByUserName</small>
-                    </div>
-
-                    <div class="border-start border-2 border-light ms-3 ps-4 position-relative pb-4">
-                        <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-@(isOverdue ? "danger" : "info") border border-white p-2">2</span>
-                        <h6 class="fw-bold @(isOverdue ? "text-danger" : "text-dark")">Son Teslim</h6>
-                        <p class="text-muted mb-0 small">@Model.DueDate?.ToString("dd MMMM yyyy, dddd")</p>
-                        @if (isOverdue)
-                        {
-                            <div class="alert alert-danger py-2 px-3 mt-2 small">
-                                <i class="bi bi-exclamation-circle-fill me-1"></i> Teslim tarihi geçti!
-                            </div>
-                        }
-                    </div>
-
-                    <div class="border-start border-2 border-light ms-3 ps-4 position-relative">
-                        <span class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-@(Model.ReturnDate.HasValue ? "success" : "secondary") border border-white p-2">3</span>
-                        <h6 class="fw-bold @(Model.ReturnDate.HasValue ? "text-success" : "text-muted")">İade</h6>
-                        @if (Model.ReturnDate.HasValue)
-                        {
-                            <p class="text-success mb-0 small">@Model.ReturnDate?.ToString("dd MMMM yyyy") tarihinde iade edildi.</p>
-                        }
-                        else
-                        {
-                            <p class="text-muted mb-0 small fst-italic">Henüz iade edilmedi.</p>
-                        }
-                    </div>
-
-                    @if (!Model.ReturnDate.HasValue)
-                    {
-                        <div class="mt-4">
-                            <label class="small text-muted mb-1">Süre Kullanımı</label>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-@statusColor" role="progressbar" style="width: @progressVal%"></div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                @if (Model.Status == "Devam Ediyor" || Model.Status == "Gecikmiş")
-                {
-                    <div class="card-footer bg-white p-3 border-top-0">
-                        <button class="btn btn-warning w-100 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#detailReturnModal">
-                            <i class="bi bi-box-arrow-in-down-left me-2"></i> Kitabı İade Al
-                        </button>
-                    </div>
-                }
-            </div>
-        </div>
-
+    <div class="row justify-content-center">
         <div class="col-lg-8">
-            <div class="row g-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="fw-bold text-dark mb-0">İşlem #@Model.Id</h2>
+                    <span class="text-muted small">Kayıt Tarihi: @Model.LoanDate?.ToString("dd.MM.yyyy HH:mm")</span>
+                </div>
+                <a asp-action="Index" class="btn btn-light border rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Listeye Dön
+                </a>
+            </div>
 
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="mb-3">
-                                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle" style="width: 80px; height: 80px;">
-                                    <i class="bi bi-person-fill display-5"></i>
-                                </div>
-                            </div>
-                            <h5 class="fw-bold mb-1">@Model.MemberName</h5>
-                            <span class="badge bg-light text-secondary border mb-3">Üye ID: #@Model.MemberId</span>
-
-                            <hr class="my-3 opacity-25">
-                            <a href="#" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                <i class="bi bi-person-lines-fill me-1"></i> Üye Detayına Git
-                            </a>
-                        </div>
-                    </div>
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+                <div class="bg-@statusColor text-white text-center py-2 fw-bold text-uppercase letter-spacing-1">
+                    <i class="bi @statusIcon me-2"></i> @statusText
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-body p-4 d-flex flex-column align-items-center text-center">
-                            <div class="bg-light p-3 rounded mb-3 border">
-                                <i class="bi bi-book fs-1 text-secondary opacity-50"></i>
-                            </div>
-                            <h5 class="fw-bold mb-1">@Model.BookTitle</h5>
-                            <div class="mb-3">
-                                <span class="badge bg-info text-dark me-1"><i class="bi bi-upc"></i> Kopya: @Model.CopyNumber</span>
+                <div class="card-body p-5">
+                    <div class="row g-5">
+
+                        <div class="col-md-6 border-end">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3">Üye Bilgileri</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-person-fill fs-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">@Model.MemberName</h5>
+                                    <span class="badge bg-light text-dark border">ID: @Model.MemberId</span>
+                                </div>
                             </div>
 
-                            @if (!string.IsNullOrEmpty(Model.Notes))
-                            {
-                                <div class="alert alert-light border small w-100 text-start">
-                                    <i class="bi bi-sticky me-1"></i> <strong>Notlar:</strong> @Model.Notes
+                            <div class="d-flex gap-2 mt-4">
+                                <a asp-controller="AdminMembers" asp-action="Details" asp-route-id="@Model.MemberId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    Profil
+                                </a>
+                                <a asp-controller="AdminContact" asp-action="Create" asp-route-toMemberId="@Model.MemberId" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                    Mesaj At
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-3">Kitap Bilgileri</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-book-fill fs-4"></i>
                                 </div>
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-0">@Model.BookTitle</h5>
+                                    <span class="badge bg-light text-dark border">Kopya: @Model.CopyNumber</span>
+                                </div>
+                            </div>
+                            <div class="alert alert-light border small mt-3 mb-0">
+                                <i class="bi bi-sticky-fill text-warning me-1"></i>
+                                <strong>Not:</strong> @(string.IsNullOrEmpty(Model.Notes) ? "-" : Model.Notes)
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4 opacity-10">
+
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <small class="text-muted d-block mb-1">Veriliş Tarihi</small>
+                            <span class="fw-bold fs-5 text-dark">@Model.LoanDate?.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="col-4 border-start border-end">
+                            <small class="text-muted d-block mb-1">Son Teslim</small>
+                            <span class="fw-bold fs-5 @(isOverdue ? "text-danger" : "text-dark")">@Model.DueDate?.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block mb-1">İade Tarihi</small>
+                            @if (isReturned)
+                            {
+                                <span class="fw-bold fs-5 text-success">@Model.ReturnDate?.ToString("dd.MM.yyyy")</span>
                             }
                             else
                             {
-                                <p class="text-muted small fst-italic">Ödünç verirken not eklenmemiş.</p>
+                                <span class="badge bg-secondary opacity-50">Bekleniyor</span>
                             }
                         </div>
                     </div>
                 </div>
-
             </div>
-        </div>
-    </div>
-</div>
 
-<div class="modal fade" id="detailReturnModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title"><i class="bi bi-arrow-return-left"></i> İade İşlemi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form asp-action="ReturnBook" method="post">
-                <div class="modal-body">
-                    <input type="hidden" name="id" value="@Model.Id" />
+            @if (!isReturned)
+            {
+                <div class="card border-0 shadow-sm rounded-4 bg-white border-top border-4 border-warning">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <i class="bi bi-box-arrow-in-down-left fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">İade İşlemi</h5>
+                        </div>
 
-                    <div class="text-center mb-4">
-                        <i class="bi bi-check-circle-fill text-success display-4"></i>
-                        <h5 class="mt-2 fw-bold">Kitap İade Ediliyor</h5>
-                        <p class="text-muted">Bu işlemi onaylıyor musunuz?</p>
-                    </div>
+                        <p class="text-muted small">Kitap kütüphaneye geri getirildiyse aşağıdaki butona basarak işlemi sonlandırabilirsiniz.</p>
 
-                    <div class="form-floating">
-                        <textarea name="returnNotes" class="form-control" placeholder="Notlar" style="height: 100px"></textarea>
-                        <label>İade Notu (Opsiyonel)</label>
+                        <form asp-action="ReturnBook" method="post">
+                            <input type="hidden" name="id" value="@Model.Id" />
+
+                            <div class="mb-3">
+                                <textarea name="returnNotes" class="form-control bg-light" rows="2" placeholder="Varsa iade notu (Örn: Cildi hasarlı, geç teslim)..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow-sm" onclick="return confirm('Bu kitabı iade almak istediğinize emin misiniz?');">
+                                <i class="bi bi-check-circle-fill me-2"></i> İADEYİ ONAYLA VE BİTİR
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-link text-secondary text-decoration-none" data-bs-dismiss="modal">Vazgeç</button>
-                    <button type="submit" class="btn btn-primary px-4">Evet, Onayla</button>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm rounded-4 bg-success bg-opacity-10 border border-success">
+                    <div class="card-body p-4 text-center text-success">
+                        <i class="bi bi-check-circle-fill display-4 mb-3"></i>
+                        <h4>İşlem Tamamlandı</h4>
+                        <p class="mb-0">Bu kitap başarıyla iade alınmıştır. Yapılacak bir işlem yok.</p>
+                    </div>
                 </div>
-            </form>
+            }
+
         </div>
     </div>
 </div>

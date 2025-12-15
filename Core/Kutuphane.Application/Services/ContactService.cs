@@ -48,19 +48,71 @@ namespace Kutuphane.Application.Services
             }
         }
 
-        public async Task<List<ContactMessage>> GetMessagesByUserIdAsync(int userId)
+        public async Task<IEnumerable<ResultContactDto>> GetMessagesByUserIdAsync(int userId)
         {
             var messages = await _contactRepository.GetMessagesByUserIdAsync(userId);
-            return messages.ToList();
+
+         
+            return messages.Select(x => new ResultContactDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Email = x.Email,
+                Subject = x.Subject,
+                Message = x.Message,
+                CreatedDate = x.CreatedDate,
+                IsRead = x.IsRead,
+                ReplyMessage = x.AdminReplay
+            }).ToList();
         }
-        
-        public async Task<IEnumerable<ContactMessage>> GetAllMessagesAsync()
+      
+
+        public async Task<IEnumerable<ResultContactDto>> GetMessagesByEmailAsync(string email)
         {
-          
-            var messages = await _contactRepository.GetAllAsync();
-            return messages.OrderByDescending(x => x.CreatedDate);
+    
+            var allMessages = await _contactRepository.GetAllAsync();
+
+      
+            var userMessages = allMessages
+                .Where(x => x.Email == email)
+                .OrderByDescending(x => x.CreatedDate)
+                .ToList();
+
+            return userMessages.Select(x => new ResultContactDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Email = x.Email,
+                Subject = x.Subject,
+                Message = x.Message,
+                CreatedDate = x.CreatedDate,
+                IsRead = x.IsRead,
+                ReplyMessage = x.AdminReplay,
+                MessageType = x.MessageType.ToString() 
+            }).ToList();
         }
 
+        public async Task<IEnumerable<ResultContactDto>> GetAllMessagesAsync()
+        {
+            var messages = await _contactRepository.GetAllAsync();
+
+            
+            return messages.Select(x => new ResultContactDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Email = x.Email,
+                Subject = x.Subject,
+                Message = x.Message,
+                CreatedDate = x.CreatedDate,
+                IsRead = x.IsRead,
+                ReplyMessage = x.AdminReplay, 
+
+                MessageType = x.MessageType.ToString()
+            })
+            .OrderByDescending(x => x.CreatedDate)
+            .ToList();
+        }
 
         public async Task<ContactMessage> GetMessageByIdAsync(int id)
         {

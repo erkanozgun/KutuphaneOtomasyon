@@ -27,10 +27,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            //sadece iade edilmemiş
 
-            var activeLoans = await _loanService.GetActiveLoansAsync();
-            return View(activeLoans);
+
+            var loans = await _loanService.GetAllLoansAsync();
+            return View(loans);
         }
 
         

@@ -20,6 +20,7 @@ namespace Kutuphane.Domain.Entities
         public DateTime? RegistrationDate { get; set; }
         public MemberStatus Status { get; set; }
         public string? Notes { get; set; }
+        public DateTime? BanExpirationDate { get; set; }
 
         public virtual ICollection<Loan> Loans { get; set; }
 

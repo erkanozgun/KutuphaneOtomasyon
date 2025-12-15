@@ -1,6 +1,10 @@
-﻿using Kutuphane.Application.Interfaces.Services; 
+﻿using Kutuphane.Application.Dtos.ContactDtos;
+using Kutuphane.Application.Interfaces.Services;
+using Kutuphane.Domain.Enums;
+using Kutuphane.WebUI.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 
 namespace Kutuphane.WebUI.Controllers.Admin
@@ -10,19 +14,36 @@ namespace Kutuphane.WebUI.Controllers.Admin
     {
         private readonly IContactService _contactService;
         private readonly IUserService _userService;
+        private readonly IMemberService _memberService;
 
-        public AdminContactController(IContactService contactService, IUserService userService)
+        public AdminContactController(IContactService contactService, IUserService userService, IMemberService memberService)
         {
             _contactService = contactService;
             _userService = userService;
+            _memberService = memberService;
         }
 
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var values = await _contactService.GetAllMessagesAsync();
-            return View(values);
+            
+            var allMessages = await _contactService.GetAllMessagesAsync();
+
+            var model = new ContactListViewModel
+            {
+                
+                InboxMessages = allMessages
+                    .Where(x => x.MessageType != "Sent")
+                    .ToList(),
+
+               
+                OutboxMessages = allMessages
+                    .Where(x => x.MessageType == "Sent")
+                    .ToList()
+            };
+
+            return View(model);
         }
 
   
@@ -61,69 +82,64 @@ namespace Kutuphane.WebUI.Controllers.Admin
             TempData["Success"] = "Cevap başarıyla gönderildi.";
             return RedirectToAction("Index");
         }
-        // Controllers/AdminContactController.cs içine ekle:
 
-        //[HttpGet]
-        //public async Task<IActionResult> SendMessage(string receiverId = null)
-        //{
-        //    // 1. Tüm üyeleri (Admin olmayanları veya herkesi) getirip Dropdown için hazırlayalım
-        //    // Not: _userManager ve _context'in tanımlı olduğunu varsayıyorum.
-        //    var members = _userManager.Users.ToList();
+        [HttpGet]
+        public async Task<IActionResult> Create(int? toMemberId)
+        {
+            var model = new CreateContactMessageDto();
 
-        //    var model = new SendMessageViewModel
-        //    {
-        //        // Eğer bir butona basıp geldiyse o kişiyi otomatik seç
-        //        ReceiverId = receiverId,
+            
+            var members = await _memberService.GetAllMembersAsync();
 
-        //        // Dropdown listesini doldur (Value=Id, Text=Ad Soyad/Email)
-        //        MemberList = members.Select(u => new SelectListItem
-        //        {
-        //            Value = u.Id,
-        //            Text = $"{u.UserName} ({u.Email})"
-        //        }).ToList()
-        //    };
+           
+            if (toMemberId.HasValue)
+            {
+                var targetMember = members.FirstOrDefault(m => m.Id == toMemberId.Value);
+                if (targetMember != null)
+                {
+                    model.SelectedMemberId = targetMember.Id;
+                    model.Email = targetMember.Email;
+                    model.Name = targetMember.FullName;
+                    model.Subject = "Kütüphane Ödünç İşlemi Hatırlatması"; 
+                    model.Message = $"Sayın {targetMember.FullName},\n\n"; 
+                }
+            }
 
-        //    // Eğer gecikme uyarısı için gelindiyse konuyu otomatik doldurabiliriz
-        //    if (!string.IsNullOrEmpty(receiverId))
-        //    {
-        //        model.Subject = "Kütüphane Kitap İade Hatırlatması";
-        //        model.Content = "Sayın üyemiz, üzerinizde bulunan kitabın iade süresi geçmiştir. Lütfen en kısa sürede iade ediniz.";
-        //    }
+         
+            ViewBag.Members = new SelectList(members, "Id", "FullName", toMemberId);
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
 
-        //[HttpPost]
-        //public async Task<IActionResult> SendMessage(SendMessageViewModel model)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        // Mesajı veritabanına kaydetme işlemi
-        //        var message = new Message // Senin Message Entity sınıfın
-        //        {
-        //            SenderId = _userService.GetUserId(User), // Gönderen Admin
-        //            ReceiverId = model.ReceiverId,           // Seçilen Üye
-        //            Subject = model.Subject,
-        //            Content = model.Content,
-        //            SentDate = DateTime.Now,
-        //            IsRead = false
-        //        };
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(CreateContactMessageDto model)
+        {
+            if (ModelState.IsValid)
+            {
+                
+                var contactDto = new ContactMessageDto
+                {
+                    Name = model.Name,
+                    Email = model.Email,
+                    Subject = model.Subject,
+                    Message = model.Message,
+                    MessageType = ContactMessageType.Sent
+                };
 
-        //        _context.Messages.Add(message);
-        //        await _context.SaveChangesAsync();
+              
+                await _contactService.SendMessageAsync(contactDto, null);
 
-        //        TempData["Success"] = "Mesaj başarıyla gönderildi.";
-        //        return RedirectToAction("Index"); // Mesajlar listesine dön
-        //    }
+                TempData["Success"] = "Mesaj başarıyla gönderildi.";
+                return RedirectToAction("Index");
+            }
 
-        //    // Hata varsa listeyi tekrar doldurup sayfayı geri döndür
-        //    model.MemberList = _userManager.Users.Select(u => new SelectListItem
-        //    {
-        //        Value = u.Id,
-        //        Text = $"{u.UserName} ({u.Email})"
-        //    }).ToList();
+          
+            var members = await _memberService.GetAllMembersAsync();
+            ViewBag.Members = new SelectList(members, "Id", "FullName", model.SelectedMemberId);
 
-        //    return View(model);
-        //}
+            return View(model);
+        }
+
     }
 }

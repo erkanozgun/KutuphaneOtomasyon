@@ -1,10 +1,5 @@
-﻿using Kutuphane.Domain.Enums;
-using System;
-using System.Collections.Generic;
+﻿using Kutuphane.Domain.Enums; // <--- Bu satırın en üstte olduğundan emin ol
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kutuphane.Application.Dtos.ContactDtos
 {

@@ -277,6 +277,9 @@ namespace Kutuphane.Persistence.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<DateTime?>("BanExpirationDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 

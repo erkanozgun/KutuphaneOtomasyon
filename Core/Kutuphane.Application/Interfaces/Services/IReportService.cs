@@ -14,4 +14,5 @@ public interface IReportService
     Task<IEnumerable<PopularBookDto>> GetMostBorrowedBooksAsync(int count);
     Task<IEnumerable<ActiveMemberDto>> GetActiveMembersAsync();
     Task<MonthlyStatisticsDto> GetMonthlyLoanStatisticsAsync(int year, int month);
+    Task<AdminStatsDto> GetDetailedStatsAsync();
 }

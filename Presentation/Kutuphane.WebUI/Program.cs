@@ -1,6 +1,9 @@
 using Kutuphane.Application;
 using Kutuphane.Identity.Extensions;
 using Kutuphane.Persistence.Extensions;
+using Kutuphane.WebUI.Services.EmailService;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 
 namespace Kutuphane.WebUI
 {
@@ -14,8 +17,13 @@ namespace Kutuphane.WebUI
             builder.Services.AddApplicationServices();
             builder.Services.AddIdentityServices();
             builder.Services.AddPersistenceServices(builder.Configuration);
+            builder.Services.AddScoped<IEmailService, SmtpEmailService>();
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddWebEncoders(o=>
+            {
+                o.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All);
+            });
         
             builder.Services.ConfigureApplicationCookie(options =>
             {

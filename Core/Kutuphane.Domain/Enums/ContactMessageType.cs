@@ -22,6 +22,13 @@ namespace Kutuphane.Domain.Enums
         Destek = 3,
 
         [Display(Name = "Kitap Talebi")]
-        KitapTalebi = 4
+        KitapTalebi = 4,
+
+        [Display(Name = "Giden Mesaj")]
+        Sent
+
+
+
+
     }
 }

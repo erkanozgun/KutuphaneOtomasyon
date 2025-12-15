@@ -48,17 +48,21 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-floating">
-                                            <select asp-for="Category" class="form-select">
-                                                <option value="" selected disabled>Seçiniz...</option>
-                                                <option value="Roman">Roman</option>
-                                                <option value="Bilim">Bilim</option>
-                                                <option value="Tarih">Tarih</option>
-                                                <option value="Felsefe">Felsefe</option>
-                                                <option value="Çocuk">Çocuk</option>
-                                                <option value="Psikoloji">Psikoloji</option>
-                                                <option value="Edebiyat">Edebiyat</option>
-                                            </select>
+                                            <input asp-for="Category" class="form-control" list="categoryOptions" placeholder="Kategori" autocomplete="off" />
                                             <label asp-for="Category"><i class="bi bi-tags me-1"></i> Kategori</label>
+
+                                            <datalist id="categoryOptions">
+                                                <option value="Roman" />
+                                                <option value="Bilim" />
+                                                <option value="Tarih" />
+                                                <option value="Felsefe" />
+                                                <option value="Çocuk" />
+                                                <option value="Psikoloji" />
+                                                <option value="Edebiyat" />
+                                                <option value="Teknoloji" />
+                                                <option value="Sanat" />
+                                            </datalist>
+
                                             <span asp-validation-for="Category" class="text-danger small"></span>
                                         </div>
                                     </div>

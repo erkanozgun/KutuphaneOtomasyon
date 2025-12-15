@@ -1,5 +1,4 @@
-﻿
-@model IEnumerable<Kutuphane.Application.Dtos.BookDtos.ResultBookDto>
+﻿@model IEnumerable<Kutuphane.Application.Dtos.BookDtos.ResultBookDto>
 
 @{
     ViewData["Title"] = "Kitap Yönetimi";
@@ -7,16 +6,15 @@
 }
 
 <style>
-    /* Tablo satırına tıklanabilirlik hissi ver */
     .cursor-pointer {
         cursor: pointer;
         transition: background-color 0.2s ease;
     }
-    /* Satırın üzerine gelince hafif renk değişimi */
+
     .table-hover tbody tr:hover {
         background-color: rgba(0, 123, 255, 0.075) !important;
     }
-    /* Buton grubu için ince ayar */
+
     .action-btn-group .btn {
         margin-right: 4px;
         border-radius: 6px;
@@ -126,17 +124,19 @@
                                     <i class="bi bi-list-ul"></i>
                                 </button>
 
-                                <div class="vr mx-2 align-middle"></div> <a asp-action="Edit" asp-route-id="@book.Id" 
-                                   class="btn btn-sm btn-outline-warning" 
+                                <div class="vr mx-2 align-middle"></div>
+
+                                <a asp-action="Edit" asp-route-id="@book.Id"
+                                   class="btn btn-sm btn-outline-warning"
                                    onclick="event.stopPropagation();"
-                                   title="Düzenle">
+                                   title="Kitabı Düzenle">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
 
-                                <form asp-action="Delete" method="post" style="display:inline;" 
+                                <form asp-action="Delete" method="post" style="display:inline;"
                                       onsubmit="event.stopPropagation(); return confirm('Bu kitabı ve tüm kopyalarını silmek istediğinize emin misiniz?');">
                                     <input type="hidden" name="id" value="@book.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
                                             onclick="event.stopPropagation();"
                                             title="Sil">
                                         <i class="bi bi-trash-fill"></i>
@@ -156,15 +156,6 @@
                     <i class="bi bi-journal-x fs-1"></i>
                 </div>
                 <h5 class="text-muted">Kayıt bulunamadı.</h5>
-                @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
-                {
-                    <p class="text-muted small">"@ViewBag.SearchTerm" aramasına uygun kitap bulunamadı.</p>
-                    <a asp-action="Index" class="btn btn-sm btn-primary mt-2">Tüm Listeyi Göster</a>
-                }
-                else
-                {
-                    <p class="text-muted small">Kütüphaneye henüz kitap eklenmemiş.</p>
-                }
             </div>
         }
     </div>
@@ -174,7 +165,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-journal-plus"></i> Hızlı Stok Ekle</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-square"></i> Stok Ekle</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form asp-action="AddCopies" method="post">
@@ -193,7 +184,7 @@
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-bold">Raf Konumu</label>
-                            <input type="text" name="shelfLocation" class="form-control form-control-lg text-center" required placeholder="Örn: A-1" />
+                            <input type="text" name="shelfLocation" class="form-control form-control-lg text-center" placeholder="Örn: A-1" required />
                         </div>
                     </div>
                 </div>
@@ -229,132 +220,92 @@
                             </tr>
                         </thead>
                         <tbody id="copiesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         // Global değişken: O an işlem yapılan kitabın ID'si.
-        // Bu sayede güncelleme/silme sonrası tabloyu tekrar yükleyebiliriz.
         var currentBookId = 0;
-        var updateModalInstance = null;
 
         // --- 1. KOPYALARI YÜKLEME (ANA FONKSİYON) ---
         function loadCopies(bookId, bookTitle) {
             currentBookId = bookId;
             $('#copiesModalTitle').text(bookTitle + " - Kopyalar");
 
-            // Modalı aç
             var myModal = new bootstrap.Modal(document.getElementById('copiesModal'));
             myModal.show();
 
-            // Verileri çek
             fetchCopies(bookId);
         }
 
-        // --- 2. VERİLERİ ÇEKME VE TABLOYU DOLDURMA (Refactored) ---
+        // --- 2. VERİLERİ ÇEKME VE TABLOYU DOLDURMA ---
         function fetchCopies(bookId) {
-            $('#copiesTableBody').html('<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>');
+            $('#copiesTableBody').html('<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Yükleniyor...</div></td></tr>');
 
             $.get('/AdminBooks/GetCopies?bookId=' + bookId, function (data) {
                 var html = '';
                 if (data.length === 0) {
-                    html = '<tr><td colspan="5" class="text-center text-muted">Hiç kopya bulunamadı.</td></tr>';
+                    html = '<tr><td colspan="5" class="text-center text-muted py-4"><i class="bi bi-box-seam fs-3 d-block mb-2 opacity-25"></i>Hiç kopya bulunamadı.</td></tr>';
                 } else {
                     $.each(data, function (index, item) {
                         var badgeClass = item.status === 'Rafta' ? 'bg-success' :
                                          item.status === 'Oduncte' ? 'bg-warning text-dark' :
                                          item.status === 'Kayıp' ? 'bg-danger' : 'bg-secondary';
 
-                        // Tırnak işaretlerini güvenli hale getir
-                        var safeShelf = (item.shelfLocation || "").replace(/'/g, "\\'");
-                        var safeCondition = (item.condition || "").replace(/'/g, "\\'");
-                        var safeStatus = item.status;
+                        // ÖNEMLİ DEĞİŞİKLİK BURADA:
+                        // Düzenle butonu artık 'button' değil 'a' (link) etiketi.
+                        // Ve doğrudan '/AdminBooks/EditCopy/ID' adresine gidiyor.
 
                         html += `<tr>
-                                    <td><strong>${item.copyNumber}</strong></td>
+                                    <td class="ps-3 fw-bold font-monospace">#${item.copyNumber}</td>
                                     <td><span class="badge ${badgeClass}">${item.status}</span></td>
-                                    <td>${item.condition || '-'}</td>
-                                    <td>${item.shelfLocation}</td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-warning me-1"
-                                                title="Düzenle"
-                                                onclick="openUpdateModal(${item.id}, '${safeShelf}', '${safeCondition}', '${safeStatus}')">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-danger"
-                                                title="Sil"
-                                                onclick="deleteCopy(${item.id})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
+                                    <td class="text-muted small">${item.condition || '-'}</td>
+                                    <td class="fw-bold text-dark">${item.shelfLocation || '-'}</td>
+                                    <td class="text-end pe-3">
+                                        <div class="btn-group">
+
+                                            <a href="/AdminBooks/EditCopy/${item.id}"
+                                               class="btn btn-sm btn-outline-warning border-0"
+                                               title="Düzenle">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+
+                                            <button class="btn btn-sm btn-outline-danger border-0"
+                                                    title="Sil"
+                                                    onclick="deleteCopy(${item.id})">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                  </tr>`;
                     });
                 }
                 $('#copiesTableBody').html(html);
-            });
-        }
-
-        // --- 3. GÜNCELLEME MODALINI AÇMA ---
-        function openUpdateModal(copyId, shelf, condition, status) {
-            // Değerleri inputlara yerleştir
-            $('#updateCopyId').val(copyId);
-            $('#updateShelfLocation').val(shelf);
-            $('#updateCondition').val(condition);
-            $('#updateStatus').val(status);
-
-            // Modalı oluştur ve aç
-            var el = document.getElementById('updateCopyModal');
-            updateModalInstance = new bootstrap.Modal(el);
-            updateModalInstance.show();
-        }
-
-        function closeUpdateModal() {
-            if(updateModalInstance) updateModalInstance.hide();
-        }
-
-        // --- 4. GÜNCELLEME İŞLEMİ (POST) ---
-        function submitUpdateCopy() {
-            var id = $('#updateCopyId').val();
-            var shelf = $('#updateShelfLocation').val();
-            var condition = $('#updateCondition').val();
-            var status = $('#updateStatus').val();
-
-            $.post('/AdminBooks/UpdateCopy', {
-                id: id,
-                shelfLocation: shelf,
-                condition: condition,
-                status: status
-            }, function (response) {
-                if (response.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Başarılı',
-                        text: response.message,
-                        timer: 1000,
-                        showConfirmButton: false
-                    });
-                    // Modalı kapat
-                    closeUpdateModal();
-                    // Arka plandaki listeyi yenile
-                    fetchCopies(currentBookId);
-                } else {
-                    Swal.fire('Hata', response.message, 'error');
-                }
             }).fail(function() {
-                Swal.fire('Hata', 'Sunucu ile iletişim kurulamadı.', 'error');
+                $('#copiesTableBody').html('<tr><td colspan="5" class="text-center text-danger py-4">Veriler yüklenirken hata oluştu.</td></tr>');
             });
         }
 
-        // --- 5. SİLME İŞLEMİ ---
+        // --- 3. SİLME İŞLEMİ (AJAX) ---
         function deleteCopy(copyId) {
             Swal.fire({
-                title: 'Silmek istediğinize emin misiniz?',
+                title: 'Emin misiniz?',
                 text: "Bu kopya kalıcı olarak silinecek!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Evet, Sil',
                 cancelButtonText: 'İptal'
             }).then((result) => {
@@ -364,7 +315,6 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Silindi',
-                                text: response.message,
                                 timer: 1000,
                                 showConfirmButton: false
                             });
@@ -377,10 +327,8 @@
                 }
             });
         }
-    </script>
 
-    <script>
-        // Stok Ekleme Modalı açıldığında BookId ve Başlığı otomatik doldurma
+        // Stok Ekleme Modalı (Otomatik Doldurma)
         var addCopyModal = document.getElementById('addCopyModal');
         addCopyModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;

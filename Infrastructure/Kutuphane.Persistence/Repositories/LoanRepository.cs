@@ -103,5 +103,14 @@ namespace Kutuphane.Persistence.Repositories
                     .OrderByDescending(l => l.LoanDate) 
                     .ToListAsync();
         }
+        public override async Task<IEnumerable<Loan>> GetAllAsync()
+        {
+         
+            return await _dbSet
+                .Include(l => l.Member) 
+                .Include(l => l.Copy).ThenInclude(c => c.Book) 
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }

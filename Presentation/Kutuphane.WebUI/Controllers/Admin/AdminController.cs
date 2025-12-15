@@ -50,5 +50,13 @@ namespace Kutuphane.WebUI.Controllers.Admin
            
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public async Task<IActionResult> Stats()
+        {
+
+            var model = await _reportService.GetDetailedStatsAsync();
+
+            return View(model);
+        }
     }
 }

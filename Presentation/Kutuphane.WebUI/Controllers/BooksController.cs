@@ -13,15 +13,24 @@ namespace Kutuphane.WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string search, string category, string author, string pages, bool available)
+
+        public async Task<IActionResult> Index(string searchTerm, string category, string author, string pages, bool available)
         {
-       
+    
             var allBooks = await _bookService.GetAllBooksAsync();
             var filteredBooks = allBooks.AsEnumerable();
 
-           
-            if (!string.IsNullOrEmpty(search))
-                filteredBooks = filteredBooks.Where(b => b.Title.Contains(search, StringComparison.OrdinalIgnoreCase) || b.ISBN.Contains(search));
+    
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+        
+                filteredBooks = filteredBooks.Where(b =>
+                    b.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    b.ISBN.Contains(searchTerm) ||
+             
+                    b.Author.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                );
+            }
 
             if (!string.IsNullOrEmpty(category))
                 filteredBooks = filteredBooks.Where(b => b.Category == category);
@@ -40,10 +49,11 @@ namespace Kutuphane.WebUI.Controllers
             if (available)
                 filteredBooks = filteredBooks.Where(b => b.AvailableCopies > 0);
 
+           
             ViewBag.Categories = allBooks.Select(b => b.Category).Distinct().OrderBy(x => x).ToList();
 
-            // Filtreleri View'da korumak için ViewBag'e atıyoruz
-            ViewBag.CurrentSearch = search;
+            
+            ViewBag.CurrentSearch = searchTerm;
             ViewBag.CurrentCategory = category;
             ViewBag.CurrentAuthor = author;
             ViewBag.CurrentPages = pages;

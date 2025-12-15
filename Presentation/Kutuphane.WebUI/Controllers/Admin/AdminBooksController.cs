@@ -181,25 +181,53 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public async Task<IActionResult> EditCopy(int id)
+        {
+            var copy = await _copyService.GetCopyByIdAsync(id);
+            if (copy == null) return NotFound();
+
+            // DTO'da Id olmadığı için, View'a ID'leri ViewBag ile taşıyoruz
+            ViewBag.CopyId = copy.Id;
+            ViewBag.BookId = copy.BookId;
+            ViewBag.CopyNumber = copy.CopyNumber;
+
+            // Formu dolduracak veriler
+            var model = new UpdateCopyDto
+            {
+                ShelfLocation = copy.ShelfLocation,
+                Condition = copy.Condition,
+                Status = copy.Status
+            };
+
+            return View(model);
+        }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateCopy(int id, string shelfLocation, string condition, string status)
+        public async Task<IActionResult> EditCopy(int id, UpdateCopyDto model)
         {
+            if (!ModelState.IsValid)
+            {
+               
+                return View(model);
+            }
+
             try
             {
-                var updateDto = new UpdateCopyDto
-                {
-                    ShelfLocation = shelfLocation,
-                    Condition = condition,
-                    Status = status 
-                };
+             
+                var result = await _copyService.UpdateCopyAsync(id, model);
 
-                await _copyService.UpdateCopyAsync(id, updateDto);
-                return Json(new { success = true, message = "Kopya başarıyla güncellendi." });
+                TempData["Success"] = "Kopya durumu güncellendi.";
+
+                return RedirectToAction("Details", new { id = result.BookId });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Güncelleme hatası: " + ex.Message });
+               
+                ModelState.AddModelError("", ex.Message);
+
+            
+                return View(model);
             }
         }
 

@@ -35,7 +35,24 @@ public class LoanService : ILoanService
 
     public async Task<ResultLoanDto> BorrowBookAsync(CreateLoanDto dto)
     {
-        // Eğer kullanıcı spesifik bir kopya seçmediyse (Otomatik Seçim)
+        var member = await _memberRepository.GetByIdAsync(dto.MemberId);
+
+        
+        if (member.Status != MemberStatus.Aktif)
+        {
+            throw new MemberNotEligibleException("Üyeliğiniz aktif olmadığı için kitap alamazsınız. Yönetimle iletişime geçin.");
+        }
+
+      
+        if (member.BanExpirationDate.HasValue && member.BanExpirationDate > DateTime.Now)
+        {
+            var remainingTime = member.BanExpirationDate.Value - DateTime.Now;
+            int remainingDays = (int)remainingTime.TotalDays;
+
+            string timeText = remainingDays > 0 ? $"{remainingDays} gün" : "birkaç saat";
+
+            throw new MemberNotEligibleException($"Cezanız bulunmaktadır. {member.BanExpirationDate.Value:dd.MM.yyyy} tarihine kadar ({timeText} daha) kitap ödünç alamazsınız.");
+        }
         if (dto.CopyId == 0 && dto.BookId != 0)
         {
            
@@ -73,8 +90,8 @@ public class LoanService : ILoanService
         if (!await CanCopyBeBorrowedAsync(dto.CopyId)) throw new CopyNotAvailableException(dto.CopyId);
 
         // 3. Üye kontrolü
-        var member = await _memberRepository.GetByIdAsync(dto.MemberId);
-        if (member == null) throw new NotFoundException("Member", dto.MemberId);
+        var memberr = await _memberRepository.GetByIdAsync(dto.MemberId);
+        if (memberr == null) throw new NotFoundException("Member", dto.MemberId);
 
         // 4. Üye ödünç alabilir mi? (Aktiflik Kontrolü)
         if (member.Status != MemberStatus.Aktif)
@@ -150,59 +167,70 @@ public class LoanService : ILoanService
         };
     }
 
+
+  
+    private const int PenaltyMultiplier = 3; 
+    private const int PermanentBanLimitDays = 30; 
+
     public async Task<ResultLoanDto> ReturnBookAsync(int loanId, ReturnLoanDto dto)
     {
-        // 1. Ödünç kaydı bul
         var loan = await _loanRepository.GetLoanWithDetailsAsync(loanId);
-        if (loan == null)
-        {
-            throw new NotFoundException("Loan", loanId);
-        }
+        if (loan == null) throw new NotFoundException("Loan", loanId);
 
-        // 2. Zaten iade edilmiş mi?
         if (loan.ReturnDate != null)
-        {
-            throw new BusinessException("This book has already been returned.");
-        }
+            throw new BusinessException("Bu kitap zaten iade edilmiş.");
 
-        // 3. İade işlemini yap
-        loan.ReturnDate = DateTime.Now;
+       
+        var returnDate = DateTime.Now;
+        loan.ReturnDate = returnDate;
         loan.Status = LoanStatus.IadeEdildi;
 
-        if (!string.IsNullOrWhiteSpace(dto.Notes))
+        if (returnDate > loan.DueDate)
         {
-            loan.Notes = loan.Notes + " | Return Note: " + dto.Notes;
+            var overdueSpan = returnDate - loan.DueDate; 
+            int overdueDays = (int)overdueSpan.TotalDays;
+
+            if (overdueDays > 0)
+            {
+               
+                if (overdueDays >= PermanentBanLimitDays)
+                {
+                    loan.Member.Status = MemberStatus.Pasif;
+                    loan.Member.Notes += $" | {DateTime.Now}: {overdueDays} gün gecikme nedeniyle SİSTEM TARAFINDAN KALICI ENGELLENDİ.";
+                    loan.Member.BanExpirationDate = DateTime.Now.AddYears(100);
+                }
+          
+                else
+                {
+                    int banDays = overdueDays * PenaltyMultiplier;
+
+
+                    DateTime startBanDate = DateTime.Now;
+
+                    if (loan.Member.BanExpirationDate.HasValue && loan.Member.BanExpirationDate.Value > DateTime.Now)
+                    {
+                        startBanDate = loan.Member.BanExpirationDate.Value;
+                    }
+
+                    loan.Member.BanExpirationDate = startBanDate.AddDays(banDays);
+
+                    loan.Notes += $" | {overdueDays} gün gecikme. {banDays} gün kitap alma yasağı verildi.";
+                }
+
+                await _memberRepository.UpdateAsync(loan.Member);
+            }
         }
+
+
+        if (!string.IsNullOrWhiteSpace(dto.Notes)) loan.Notes += " | Not: " + dto.Notes;
 
         await _loanRepository.UpdateAsync(loan);
 
-        // 4. Kopya durumunu güncelle
+      
         var copy = await _copyRepository.GetByIdAsync(loan.CopyId);
-        if (copy != null)
-        {
-            copy.Status = CopyStatus.Rafta;
-            await _copyRepository.UpdateAsync(copy);
-        }
+        if (copy != null) { copy.Status = CopyStatus.Rafta; await _copyRepository.UpdateAsync(copy); }
 
-        // 5. DTO döndür
-        return new ResultLoanDto
-        {
-            Id = loan.Id,
-            CopyId = loan.CopyId,
-            MemberId = loan.MemberId,
-            MemberName = loan.Member.FullName,
-            BookTitle = loan.Copy.Book.Title,
-            CopyNumber = loan.Copy.CopyNumber,
-            LoanDate = loan.LoanDate,
-            DueDate = loan.DueDate,
-            ReturnDate = loan.ReturnDate,
-            Status = loan.Status.ToString(),
-            Notes = loan.Notes,
-            LoanedByUserId = loan.LoanedByUserId,
-            LoanedByUserName = loan.LoanedByUser.FullName,
-            IsOverdue = loan.IsOverdue,
-            OverdueDays = loan.OverdueDays
-        };
+        return MapToDto(loan);
     }
 
     public async Task<ResultLoanDto?> GetLoanByIdAsync(int id)

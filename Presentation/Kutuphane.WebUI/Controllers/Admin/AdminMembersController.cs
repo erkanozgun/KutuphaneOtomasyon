@@ -1,6 +1,7 @@
 ﻿using Kutuphane.Application.Dtos.MemberDtos;
 using Kutuphane.Application.Exceptions;
 using Kutuphane.Application.Interfaces.Services;
+using Kutuphane.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -144,6 +145,21 @@ namespace Kutuphane.WebUI.Controllers.Admin
             catch (Exception ex)
             {
                 TempData["Error"] = "Silme hatası: " + ex.Message;
+            }
+            return RedirectToAction("Index");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveBan(int id)
+        {
+            try
+            {
+                await _memberService.RemoveBanAsync(id);
+                TempData["Success"] = "Üyenin üzerindeki tüm engeller ve cezalar kaldırıldı.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "İşlem başarısız: " + ex.Message;
             }
             return RedirectToAction("Index");
         }

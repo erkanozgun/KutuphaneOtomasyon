@@ -20,4 +20,5 @@ public class ResultMemberDto
     public DateTime? RegistrationDate { get; set; }
     public string Status { get; set; }
     public string? Notes { get; set; }
+    public DateTime? BanExpirationDate { get; set; }
 }
