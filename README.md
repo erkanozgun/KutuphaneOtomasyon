@@ -6,46 +6,63 @@ Modern, hızlı ve kullanıcı dostu bir kütüphane yönetim çözümü. **Clea
 
 ## ✨ Özellikler
 
-- 📖 **Gelişmiş Kitap Yönetimi**: Kitap ekleme, silme, güncelleme ve detaylı arama.
-- 👤 **Üye Takibi**: Üye kayıtları, profil yönetimi ve ödünç alma geçmişi.
-- 🔄 **Emanet/İade Sistemi**: Kitapların ödünç verilmesi ve iade süreçlerinin takibi.
-- 📊 **Raporlama**: Grafiklerle desteklenmiş dashboard ve istatistik paneli.
-- 🛡️ **Rol Tabanlı Yetkilendirme**: Admin ve Personel yetki seviyeleri.
+- 📖 **Kitap Yönetimi**: Kitap ekleme, silme, güncelleme ve detaylı listeleme.
+- 👤 **Üye Yönetimi**: Üye kayıtları ve profil işlemleri.
+- 🔄 **Emanet Sistemi**: Kitap ödünç verme ve iade süreçlerinin takibi.
+- 📊 **Dashboard**: İstatistikler ve grafiklerle desteklenmiş özet panel.
+- 🛡️ **Yetkilendirme**: Role-based (Admin/Personel) erişim kontrolü.
+
+---
+
+## 👤 Kullanıcı Rolleri ve Yetkiler
+
+| Rol | Yetkiler |
+| :--- | :--- |
+| **Admin** | Tüm sistem yönetimi, kullanıcı tanımlama, kitap ve üye yönetimi. |
+| **Personel** | Emanet/İade işlemleri, kitap listeleme ve üye takibi. |
 
 ---
 
 ## 🛠️ Teknoloji Yığını
 
-- **Backend**: .NET 8.0
-- **Frontend**: ASP.NET Core MVC, Bootstrap, jQuery
+- **Dil**: C# 12 / .NET 8.0
+- **Mimari**: Clean Architecture
+- **Web**: ASP.NET Core MVC
 - **Veritabanı**: MS SQL Server
 - **ORM**: Entity Framework Core
-- **Kimlik Doğrulama**: Microsoft Identity
-- **Dokümantasyon**: Swagger / OpenAPI
+- **Kimlik Yönetimi**: ASP.NET Core Identity
+- **UI**: Bootstrap 5, jQuery, DataTables
 
 ---
 
-## 📂 Proje Yapısı
+## 📂 Proje Klasör Yapısı
 
-- `Presentation/Kutuphane.WebUI`: Kullanıcı arayüzü ve API katmanı.
-- `Infrastructure/Kutuphane.Persistence`: Veritabanı context ve repositoriyer.
-- `Infrastructure/Kutuphane.Infrastructure`: Servisler (Dosya yönetimi vb.).
-- `Core/Kutuphane.Application`: Business logic ve CQRS.
-- `Core/Kutuphane.Domain`: Entity'ler ve Domain logic.
+Proje **Clean Architecture** prensiplerine uygun olarak şu şekilde yapılandırılmıştır:
+
+- **Core**: 
+  - `Kutuphane.Domain`: Entity'ler ve temel kurallar.
+  - `Kutuphane.Application`: İş mantığı (Business Logic), servisler ve CQRS.
+- **Infrastructure**:
+  - `Kutuphane.Persistence`: Veritabanı context'i ve Repositoriyer.
+  - `Kutuphane.Identity`: Kimlik doğrulama ve yetkilendirme servisleri.
+- **Presentation**:
+  - `Kutuphane.WebUI`: Kullanıcı arayüzü ve uygulama ana giriş noktası.
 
 ---
 
-## 🚀 Kurulum ve Başlatma
+## 🚀 Hızlı Başlangıç
 
-Sistemi bilgisayarınızda çalıştırmak için detaylı kurulum rehberine göz atın:
+Sistemi çalıştırmak için aşağıdaki adımları izleyebilirsiniz:
 
-👉 **[KURULUM REHBERİ (KURULUM.md)](file:///c:/Users/Erkan/Desktop/KutuphaneOtomasyon/Kutuphane/KURULUM.md)**
+1. Veritabanı bağlantı dizesini (`appsettings.json`) güncelleyin.
+2. `Kutuphane.Persistence` klasöründe migration'ları uygulayın.
+3. Uygulamayı çalıştırın.
+
+Detaylı kurulum için: 👉 **[KURULUM REHBERİ (KURULUM.md)](KURULUM.md)**
 
 ---
 
 ## 🖼️ Ekran Görüntüleri
-
-Uygulamanın arayüzüne ait güncel ekran görüntüleri:
 
 ### 🏠 Ana Sayfa Dashboard
 ![Ana Sayfa Dashboard](docs/AnaSayfa.png)
@@ -60,5 +77,6 @@ Uygulamanın arayüzüne ait güncel ekran görüntüleri:
 ![Kullanıcı Profili](docs/KullaniciProfil.png)
 
 ---
+*Bu proje modern standartlara uygun olarak geliştirilmiştir.*
 
 
