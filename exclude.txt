@@ -1,0 +1,11 @@
+obj\
+bin\
+.vs\
+.git\
+.github\
+.gitattributes
+*.user
+node_modules\
+wwwroot\lib\
+Teslimat\
+database.sql
