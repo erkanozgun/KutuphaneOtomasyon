@@ -16,10 +16,25 @@
             <h2 class="fw-bold text-dark mb-0"><i class="bi bi-arrow-left-right me-2 text-primary"></i>Ödünç Yönetimi</h2>
             <p class="text-muted small mb-0">Kitap alış-veriş işlemlerini buradan takip edebilirsiniz.</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm hover-scale">
-            <i class="bi bi-plus-lg me-2"></i>Yeni Ödünç Ver
-        </a>
+        <div class="d-flex gap-2">
+            <a asp-action="Notifications" class="btn btn-outline-warning rounded-pill px-4 position-relative">
+                <i class="bi bi-bell-fill me-2"></i>Bildirimler
+                @{
+                    var overdueCount = activeLoans.Count(l => l.DueDate < DateTime.Now);
+                }
+                @if (overdueCount > 0)
+                {
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        @overdueCount
+                    </span>
+                }
+            </a>
+            <a asp-action="Create" class="btn btn-primary rounded-pill px-4 shadow-sm hover-scale">
+                <i class="bi bi-plus-lg me-2"></i>Yeni Ödünç Ver
+            </a>
+        </div>
     </div>
+
 
     <div class="card shadow-sm mb-4 border-0">
         <div class="card-body py-3">
@@ -120,10 +135,21 @@
                                                     Son: @item.DueDate?.ToString("dd.MM.yyyy")
                                                 </div>
                                             </td>
-                                            <td class="text-end pe-4">
-                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light border text-primary rounded-pill">
-                                                    <i class="bi bi-eye-fill"></i> İncele
-                                                </a>
+                                            <td class="text-end pe-4" onclick="event.stopPropagation();">
+                                                <div class="btn-group">
+                                                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-light border text-primary" title="Detay">
+                                                        <i class="bi bi-eye-fill"></i>
+                                                    </a>
+                                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-light border text-warning" title="Düzenle">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </a>
+                                                    @if (!isOverdue)
+                                                    {
+                                                        <a asp-action="Extend" asp-route-id="@item.Id" class="btn btn-sm btn-light border text-success" title="Süre Uzat">
+                                                            <i class="bi bi-calendar-plus"></i>
+                                                        </a>
+                                                    }
+                                                </div>
                                             </td>
                                         </tr>
                                     }

@@ -37,13 +37,13 @@ public class LoanService : ILoanService
     {
         var member = await _memberRepository.GetByIdAsync(dto.MemberId);
 
-        
+
         if (member.Status != MemberStatus.Aktif)
         {
             throw new MemberNotEligibleException("Üyeliğiniz aktif olmadığı için kitap alamazsınız. Yönetimle iletişime geçin.");
         }
 
-      
+
         if (member.BanExpirationDate.HasValue && member.BanExpirationDate > DateTime.Now)
         {
             var remainingTime = member.BanExpirationDate.Value - DateTime.Now;
@@ -55,7 +55,7 @@ public class LoanService : ILoanService
         }
         if (dto.CopyId == 0 && dto.BookId != 0)
         {
-           
+
             var candidateCopies = await _copyRepository.GetAllAvailableCopiesForBookAsync(dto.BookId);
 
             if (!candidateCopies.Any())
@@ -70,11 +70,11 @@ public class LoanService : ILoanService
 
                 if (await CanCopyBeBorrowedAsync(kopya.Id))
                 {
-                    dto.CopyId = kopya.Id; 
+                    dto.CopyId = kopya.Id;
                     copyFound = true;
                     break;
                 }
-         
+
             }
 
             if (!copyFound)
@@ -103,7 +103,7 @@ public class LoanService : ILoanService
 
         // KURAL A: Maksimum 2 Kitap Kontrolü 
         if (activeLoans.Count() >= 2)
-        {  
+        {
             throw new MemberNotEligibleException("Ödünç alma limitine ulaştınız (Maks: 2). Yeni kitap almak için lütfen elinizdeki kitaplardan birini iade ediniz.");
         }
 
@@ -121,7 +121,7 @@ public class LoanService : ILoanService
             throw new MemberNotEligibleException("Bu kitabı zaten ödünç almışsınız. Aynı kitabı iki kez alamazsınız.");
         }
 
-     
+
 
         // 6. Kullanıcı (Personel/Sistemi Kullanan) kontrolü
         var user = await _userRepository.GetByIdAsync(dto.LoanedByUserId);
@@ -168,9 +168,9 @@ public class LoanService : ILoanService
     }
 
 
-  
-    private const int PenaltyMultiplier = 3; 
-    private const int PermanentBanLimitDays = 30; 
+
+    private const int PenaltyMultiplier = 3;
+    private const int PermanentBanLimitDays = 30;
 
     public async Task<ResultLoanDto> ReturnBookAsync(int loanId, ReturnLoanDto dto)
     {
@@ -180,26 +180,26 @@ public class LoanService : ILoanService
         if (loan.ReturnDate != null)
             throw new BusinessException("Bu kitap zaten iade edilmiş.");
 
-       
+
         var returnDate = DateTime.Now;
         loan.ReturnDate = returnDate;
         loan.Status = LoanStatus.IadeEdildi;
 
         if (returnDate > loan.DueDate)
         {
-            var overdueSpan = returnDate - loan.DueDate; 
+            var overdueSpan = returnDate - loan.DueDate;
             int overdueDays = (int)overdueSpan.TotalDays;
 
             if (overdueDays > 0)
             {
-               
+
                 if (overdueDays >= PermanentBanLimitDays)
                 {
                     loan.Member.Status = MemberStatus.Pasif;
                     loan.Member.Notes += $" | {DateTime.Now}: {overdueDays} gün gecikme nedeniyle SİSTEM TARAFINDAN KALICI ENGELLENDİ.";
                     loan.Member.BanExpirationDate = DateTime.Now.AddYears(100);
                 }
-          
+
                 else
                 {
                     int banDays = overdueDays * PenaltyMultiplier;
@@ -226,7 +226,7 @@ public class LoanService : ILoanService
 
         await _loanRepository.UpdateAsync(loan);
 
-      
+
         var copy = await _copyRepository.GetByIdAsync(loan.CopyId);
         if (copy != null) { copy.Status = CopyStatus.Rafta; await _copyRepository.UpdateAsync(copy); }
 
@@ -322,10 +322,122 @@ public class LoanService : ILoanService
 
     public async Task<IEnumerable<ResultLoanDto>> GetAllLoansAsync()
     {
-    
         var loans = await _loanRepository.GetAllAsync();
-
-     
         return loans.Select(MapToDto).ToList();
+    }
+
+    /// <summary>
+    /// Ödünç kaydını günceller (teslim tarihi, notlar)
+    /// </summary>
+    public async Task<ResultLoanDto> UpdateLoanAsync(UpdateLoanDto dto)
+    {
+        var loan = await _loanRepository.GetLoanWithDetailsAsync(dto.Id);
+        if (loan == null)
+            throw new NotFoundException("Loan", dto.Id);
+
+        // Zaten iade edilmiş ödünçler düzenlenemez
+        if (loan.ReturnDate != null)
+            throw new BusinessException("İade edilmiş ödünç kayıtları düzenlenemez.");
+
+        // Teslim tarihi geçmişe ayarlanamaz (bugünden önce olamaz)
+        if (dto.DueDate.Date < DateTime.Now.Date)
+            throw new BusinessException("Teslim tarihi bugünden önce olamaz.");
+
+        // Değişiklikleri uygula
+        loan.DueDate = dto.DueDate;
+        loan.Notes = dto.Notes;
+
+        await _loanRepository.UpdateAsync(loan);
+
+        return MapToDto(loan);
+    }
+
+    /// <summary>
+    /// Ödünç süresini uzatır
+    /// </summary>
+    public async Task<ResultLoanDto> ExtendLoanAsync(ExtendLoanDto dto)
+    {
+        var loan = await _loanRepository.GetLoanWithDetailsAsync(dto.Id);
+        if (loan == null)
+            throw new NotFoundException("Loan", dto.Id);
+
+        // Zaten iade edilmiş ödünçler uzatılamaz
+        if (loan.ReturnDate != null)
+            throw new BusinessException("İade edilmiş ödünç kayıtları uzatılamaz.");
+
+        // Gecikmiş ödünçler uzatılamaz
+        if (loan.IsOverdue)
+            throw new BusinessException("Gecikmiş ödünç kayıtları uzatılamaz. Önce kitabı iade alın.");
+
+        // Maksimum 30 gün uzatma
+        if (dto.ExtensionDays < 1 || dto.ExtensionDays > 30)
+            throw new BusinessException("Uzatma süresi 1-30 gün arasında olmalıdır.");
+
+        // Yeni teslim tarihini hesapla
+        var newDueDate = loan.DueDate.AddDays(dto.ExtensionDays);
+
+        // Notlara uzatma bilgisi ekle
+        var extensionNote = $" | Süre uzatıldı: +{dto.ExtensionDays} gün ({DateTime.Now:dd.MM.yyyy})";
+        if (!string.IsNullOrEmpty(dto.ExtensionReason))
+            extensionNote += $" - Sebep: {dto.ExtensionReason}";
+
+        loan.DueDate = newDueDate;
+        loan.Notes = (loan.Notes ?? "") + extensionNote;
+
+        await _loanRepository.UpdateAsync(loan);
+
+        return MapToDto(loan);
+    }
+
+    /// <summary>
+    /// Teslim tarihi yaklaşan ödünçleri getirir
+    /// </summary>
+    public async Task<IEnumerable<ResultLoanDto>> GetLoansNearingDueDateAsync(int daysBeforeDue = 3)
+    {
+        var activeLoans = await _loanRepository.GetActiveLoansAsync();
+
+        var today = DateTime.Now.Date;
+        var targetDate = today.AddDays(daysBeforeDue);
+
+        // Teslim tarihi bugün ile hedef tarih arasında olan (henüz gecikmeyen) ödünçler
+        var nearingLoans = activeLoans
+            .Where(l => l.DueDate.Date >= today && l.DueDate.Date <= targetDate && !l.IsOverdue)
+            .OrderBy(l => l.DueDate)
+            .ToList();
+
+        return nearingLoans.Select(MapToDto);
+    }
+
+    /// <summary>
+    /// Bildirim özeti oluşturur (gecikmiş + yaklaşan teslimler)
+    /// </summary>
+    public async Task<LoanNotificationSummaryDto> GetNotificationSummaryAsync()
+    {
+        var activeLoans = await _loanRepository.GetActiveLoansAsync();
+        var allLoans = await _loanRepository.GetAllAsync();
+
+        var overdueLoans = activeLoans.Where(l => l.IsOverdue).OrderByDescending(l => l.OverdueDays).ToList();
+        var nearingDueLoans = activeLoans
+            .Where(l => !l.IsOverdue && l.DueDate.Date <= DateTime.Now.Date.AddDays(3) && l.DueDate.Date >= DateTime.Now.Date)
+            .OrderBy(l => l.DueDate)
+            .ToList();
+
+        var thisMonth = DateTime.Now.Month;
+        var thisYear = DateTime.Now.Year;
+        var loansThisMonth = allLoans.Count(l => l.LoanDate.Month == thisMonth && l.LoanDate.Year == thisYear);
+
+        var summary = new LoanNotificationSummaryDto
+        {
+            OverdueLoansCount = overdueLoans.Count,
+            NearingDueDateCount = nearingDueLoans.Count,
+            TotalLoansThisMonth = loansThisMonth,
+            OverdueLoans = overdueLoans.Take(10).Select(MapToDto).ToList(),
+            NearingDueLoans = nearingDueLoans.Take(10).Select(MapToDto).ToList(),
+            TotalOverdueDays = overdueLoans.Sum(l => l.OverdueDays),
+            MostCriticalOverdue = overdueLoans.FirstOrDefault() != null ? MapToDto(overdueLoans.First()) : null,
+            GeneratedAt = DateTime.Now
+        };
+
+        return summary;
     }
 }

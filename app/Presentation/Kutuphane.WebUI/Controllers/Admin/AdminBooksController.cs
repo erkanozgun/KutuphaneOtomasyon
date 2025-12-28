@@ -92,7 +92,11 @@ namespace Kutuphane.WebUI.Controllers.Admin
         public async Task<IActionResult> Edit(int id)
         {
             var bookDto = await _bookService.GetBookByIdAsync(id);
-            if (bookDto == null) return NotFound();
+            if (bookDto == null)
+            {
+                TempData["Error"] = "Düzenlemek istediğiniz kitap bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
             var model = new BookEditViewModel
             {
@@ -185,7 +189,11 @@ namespace Kutuphane.WebUI.Controllers.Admin
         public async Task<IActionResult> EditCopy(int id)
         {
             var copy = await _copyService.GetCopyByIdAsync(id);
-            if (copy == null) return NotFound();
+            if (copy == null)
+            {
+                TempData["Error"] = "Düzenlemek istediğiniz kopya bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
             // DTO'da Id olmadığı için, View'a ID'leri ViewBag ile taşıyoruz
             ViewBag.CopyId = copy.Id;
@@ -208,13 +216,13 @@ namespace Kutuphane.WebUI.Controllers.Admin
         {
             if (!ModelState.IsValid)
             {
-               
+
                 return View(model);
             }
 
             try
             {
-             
+
                 var result = await _copyService.UpdateCopyAsync(id, model);
 
                 TempData["Success"] = "Kopya durumu güncellendi.";
@@ -223,10 +231,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
             catch (Exception ex)
             {
-               
+
                 ModelState.AddModelError("", ex.Message);
 
-            
+
                 return View(model);
             }
         }
@@ -275,7 +283,11 @@ namespace Kutuphane.WebUI.Controllers.Admin
         public async Task<IActionResult> Details(int id)
         {
             var book = await _bookService.GetBookByIdAsync(id);
-            if (book == null) return NotFound();
+            if (book == null)
+            {
+                TempData["Error"] = "Aradığınız kitap bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
             var copies = await _copyService.GetCopiesByBookIdAsync(id);
 

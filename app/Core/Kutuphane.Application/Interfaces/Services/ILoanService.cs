@@ -21,4 +21,12 @@ public interface ILoanService
     Task<int> CalculateOverdueDaysAsync(int loanId);
     Task<IEnumerable<ResultLoanDto>> GetActiveLoansAsync();
     Task<IEnumerable<ResultLoanDto>> GetAllLoansAsync();
+
+    // Yeni metodlar - Ödünç Düzenleme
+    Task<ResultLoanDto> UpdateLoanAsync(UpdateLoanDto dto);
+    Task<ResultLoanDto> ExtendLoanAsync(ExtendLoanDto dto);
+
+    // Bildirim sistemi için
+    Task<IEnumerable<ResultLoanDto>> GetLoansNearingDueDateAsync(int daysBeforeDue = 3);
+    Task<LoanNotificationSummaryDto> GetNotificationSummaryAsync();
 }

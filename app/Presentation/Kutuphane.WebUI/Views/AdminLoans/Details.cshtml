@@ -10,7 +10,8 @@
 
     string statusColor = isReturned ? "success" : (isOverdue ? "danger" : "primary");
     string statusText = isReturned ? "İade Edildi" : (isOverdue ? "Gecikmiş" : "Devam Ediyor");
-    string statusIcon = isReturned ? "bi-check-circle-fill" : (isOverdue ? "bi-exclamation-triangle-fill" : "bi-hourglass-split");
+    string statusIcon = isReturned ? "bi-check-circle-fill" : (isOverdue ? "bi-exclamation-triangle-fill" :
+    "bi-hourglass-split");
 }
 
 <div class="container py-5">
@@ -22,9 +23,23 @@
                     <h2 class="fw-bold text-dark mb-0">İşlem #@Model.Id</h2>
                     <span class="text-muted small">Kayıt Tarihi: @Model.LoanDate?.ToString("dd.MM.yyyy HH:mm")</span>
                 </div>
-                <a asp-action="Index" class="btn btn-light border rounded-pill px-4">
-                    <i class="bi bi-arrow-left me-2"></i>Listeye Dön
-                </a>
+                <div class="d-flex gap-2">
+                    @if (!isReturned)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning rounded-pill px-4">
+                            <i class="bi bi-pencil-fill me-2"></i>Düzenle
+                        </a>
+                        @if (!isOverdue)
+                        {
+                            <a asp-action="Extend" asp-route-id="@Model.Id" class="btn btn-success rounded-pill px-4">
+                                <i class="bi bi-calendar-plus me-2"></i>Süre Uzat
+                            </a>
+                        }
+                    }
+                    <a asp-action="Index" class="btn btn-light border rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i>Listeye Dön
+                    </a>
+                </div>
             </div>
 
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
@@ -38,7 +53,8 @@
                         <div class="col-md-6 border-end">
                             <h6 class="text-uppercase text-muted fw-bold small mb-3">Üye Bilgileri</h6>
                             <div class="d-flex align-items-center mb-3">
-                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 50px; height: 50px;">
                                     <i class="bi bi-person-fill fs-4"></i>
                                 </div>
                                 <div>
@@ -48,10 +64,13 @@
                             </div>
 
                             <div class="d-flex gap-2 mt-4">
-                                <a asp-controller="AdminMembers" asp-action="Details" asp-route-id="@Model.MemberId" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <a asp-controller="AdminMembers" asp-action="Details" asp-route-id="@Model.MemberId"
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                     Profil
                                 </a>
-                                <a asp-controller="AdminContact" asp-action="Create" asp-route-toMemberId="@Model.MemberId" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                                <a asp-controller="AdminContact" asp-action="Create"
+                                    asp-route-toMemberId="@Model.MemberId"
+                                    class="btn btn-sm btn-outline-dark rounded-pill px-3">
                                     Mesaj At
                                 </a>
                             </div>
@@ -60,7 +79,8 @@
                         <div class="col-md-6">
                             <h6 class="text-uppercase text-muted fw-bold small mb-3">Kitap Bilgileri</h6>
                             <div class="d-flex align-items-center mb-3">
-                                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 50px; height: 50px;">
                                     <i class="bi bi-book-fill fs-4"></i>
                                 </div>
                                 <div>
@@ -85,7 +105,8 @@
                         </div>
                         <div class="col-4 border-start border-end">
                             <small class="text-muted d-block mb-1">Son Teslim</small>
-                            <span class="fw-bold fs-5 @(isOverdue ? "text-danger" : "text-dark")">@Model.DueDate?.ToString("dd.MM.yyyy")</span>
+                            <span
+                                class="fw-bold fs-5 @(isOverdue ? "text-danger" : "text-dark")">@Model.DueDate?.ToString("dd.MM.yyyy")</span>
                         </div>
                         <div class="col-4">
                             <small class="text-muted d-block mb-1">İade Tarihi</small>
@@ -107,22 +128,26 @@
                 <div class="card border-0 shadow-sm rounded-4 bg-white border-top border-4 border-warning">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-3">
-                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 40px; height: 40px;">
                                 <i class="bi bi-box-arrow-in-down-left fs-5"></i>
                             </div>
                             <h5 class="fw-bold mb-0">İade İşlemi</h5>
                         </div>
 
-                        <p class="text-muted small">Kitap kütüphaneye geri getirildiyse aşağıdaki butona basarak işlemi sonlandırabilirsiniz.</p>
+                        <p class="text-muted small">Kitap kütüphaneye geri getirildiyse aşağıdaki butona basarak işlemi
+                            sonlandırabilirsiniz.</p>
 
                         <form asp-action="ReturnBook" method="post">
                             <input type="hidden" name="id" value="@Model.Id" />
 
                             <div class="mb-3">
-                                <textarea name="returnNotes" class="form-control bg-light" rows="2" placeholder="Varsa iade notu (Örn: Cildi hasarlı, geç teslim)..."></textarea>
+                                <textarea name="returnNotes" class="form-control bg-light" rows="2"
+                                    placeholder="Varsa iade notu (Örn: Cildi hasarlı, geç teslim)..."></textarea>
                             </div>
 
-                            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow-sm" onclick="return confirm('Bu kitabı iade almak istediğinize emin misiniz?');">
+                            <button type="submit" class="btn btn-warning w-100 py-3 fw-bold shadow-sm"
+                                onclick="return confirm('Bu kitabı iade almak istediğinize emin misiniz?');">
                                 <i class="bi bi-check-circle-fill me-2"></i> İADEYİ ONAYLA VE BİTİR
                             </button>
                         </form>

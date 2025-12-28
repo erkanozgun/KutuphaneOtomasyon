@@ -130,16 +130,18 @@ namespace Kutuphane.Application.Services
         public async Task<AdminStatsDto> GetDetailedStatsAsync()
         {
             // 1. Tüm Ödünç Verilerini Çek
-            // (Not: LoanRepository.GetAllAsync içinde Member ve Book Include edildiğinden emin olmalısın)
             var allLoans = await _loanRepository.GetAllAsync();
+            var allBooks = await _bookRepository.GetAllAsync();
+            var allCopies = await _copyRepository.GetAllAsync();
 
-            // --- GRAFİK 1: AYLIK ÖDÜNÇ TRENDİ ---
-            var sixMonthsAgo = DateTime.Now.AddMonths(-6);
+            var now = DateTime.Now;
+            var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+            var lastMonthStart = thisMonthStart.AddMonths(-1);
+            var sixMonthsAgo = now.AddMonths(-6);
+            var sevenDaysAgo = now.AddDays(-7);
 
-            // Entity'de LoanDate zorunlu (DateTime) olduğu için direkt kullanıyoruz
-            var recentLoans = allLoans
-                .Where(l => l.LoanDate >= sixMonthsAgo)
-                .ToList();
+            // --- GRAFİK 1: AYLIK ÖDÜNÇ VE İADE TRENDİ ---
+            var recentLoans = allLoans.Where(l => l.LoanDate >= sixMonthsAgo).ToList();
 
             var groupedLoans = recentLoans
                 .GroupBy(l => new { l.LoanDate.Year, l.LoanDate.Month })
@@ -147,12 +149,10 @@ namespace Kutuphane.Application.Services
                 .Select(g => new
                 {
                     MonthName = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(g.Key.Month),
-                    Count = g.Count()
+                    LoanCount = g.Count(),
+                    ReturnCount = g.Count(l => l.ReturnDate.HasValue)
                 })
                 .ToList();
-
-            // 2. Tüm Kitapları Çek
-            var allBooks = await _bookRepository.GetAllAsync();
 
             // --- GRAFİK 2: KATEGORİ DAĞILIMI ---
             var categoryStats = allBooks
@@ -161,8 +161,7 @@ namespace Kutuphane.Application.Services
                 .OrderByDescending(x => x.Count)
                 .ToList();
 
-            // --- GRAFİK 3: EN POPÜLER YAZARLAR (YENİ) ---
-            // Kütüphanede en çok kitabı bulunan yazarları buluyoruz
+            // --- GRAFİK 3: EN POPÜLER YAZARLAR ---
             var topAuthorsData = allBooks
                 .GroupBy(b => b.Author)
                 .Select(g => new { Author = g.Key, Count = g.Count() })
@@ -176,7 +175,6 @@ namespace Kutuphane.Application.Services
                 .GroupBy(l => l.MemberId)
                 .Select(g => new TopReaderDto
                 {
-                    // Null check (??) ile veri güvenliği sağlıyoruz
                     MemberName = g.First().Member?.FullName ?? "Silinmiş Üye",
                     MemberNumber = g.First().Member?.MemberNumber ?? "-",
                     TotalReadCount = g.Count()
@@ -185,32 +183,81 @@ namespace Kutuphane.Application.Services
                 .Take(5)
                 .ToList();
 
-            // --- KPI KARTLARI (ÖZET BİLGİLER) ---
-            var totalMembers = await _memberRepository.CountAsync(); // Toplam üye sayısı
-            var activeLoansCount = allLoans.Count(l => l.ReturnDate == null); // Şu an dışarıdaki kitaplar
+            // --- POPÜLER KİTAPLAR ---
+            var popularBooks = allBooks
+                .Select(b => new PopularBookDto
+                {
+                    BookId = b.Id,
+                    Title = b.Title,
+                    Author = b.Author,
+                    Category = b.Category ?? "Diğer",
+                    BorrowCount = b.Copies?.SelectMany(c => c.Loans).Count() ?? 0
+                })
+                .OrderByDescending(x => x.BorrowCount)
+                .Take(5)
+                .ToList();
+
+            // --- HAFTALIK AKTİVİTE (SON 7 GÜN) ---
+            var weekDays = new List<string>();
+            var dailyLoanCounts = new List<int>();
+
+            for (int i = 6; i >= 0; i--)
+            {
+                var day = now.AddDays(-i);
+                weekDays.Add(day.ToString("ddd", new System.Globalization.CultureInfo("tr-TR")));
+                dailyLoanCounts.Add(allLoans.Count(l => l.LoanDate.Date == day.Date));
+            }
+
+            // --- ÖZET İSTATİSTİKLER ---
+            var totalMembers = await _memberRepository.CountAsync();
+            var totalCopies = allCopies.Count();
+            var availableCopies = allCopies.Count(c => c.Status == CopyStatus.Rafta);
+            var activeLoansCount = allLoans.Count(l => l.ReturnDate == null);
+            var overdueLoans = allLoans.Count(l => l.ReturnDate == null && l.DueDate < now);
+
+            var loansThisMonth = allLoans.Count(l => l.LoanDate >= thisMonthStart);
+            var loansLastMonth = allLoans.Count(l => l.LoanDate >= lastMonthStart && l.LoanDate < thisMonthStart);
+
+            var newMembersThisMonth = await _memberRepository.CountAsync(m =>
+                m.RegistrationDate >= thisMonthStart);
+            var newBooksThisMonth = await _bookRepository.CountAsync(b =>
+                b.CreatedDate >= thisMonthStart);
 
             // --- DTO DÖNÜŞÜ ---
             return new AdminStatsDto
             {
                 // Aylık Trend
                 Months = groupedLoans.Select(x => x.MonthName).ToList(),
-                MonthlyLoanCounts = groupedLoans.Select(x => x.Count).ToList(),
+                MonthlyLoanCounts = groupedLoans.Select(x => x.LoanCount).ToList(),
+                MonthlyReturnCounts = groupedLoans.Select(x => x.ReturnCount).ToList(),
 
                 // Kategoriler
                 Categories = categoryStats.Select(x => x.Category ?? "Diğer").ToList(),
                 BookCountsByCategory = categoryStats.Select(x => x.Count).ToList(),
 
-                // Yazarlar (Yeni)
+                // Yazarlar
                 TopAuthors = topAuthorsData.Select(x => x.Author).ToList(),
                 BookCountsByAuthor = topAuthorsData.Select(x => x.Count).ToList(),
 
-                // Tablo
+                // Tablolar
                 TopReaders = topReaders,
+                PopularBooks = popularBooks,
 
-                // Özet Kartlar (Yeni)
+                // Haftalık Aktivite
+                WeekDays = weekDays,
+                DailyLoanCounts = dailyLoanCounts,
+
+                // Özet Kartlar
                 TotalBooks = allBooks.Count(),
                 TotalMembers = totalMembers,
-                ActiveLoans = activeLoansCount
+                TotalCopies = totalCopies,
+                AvailableCopies = availableCopies,
+                ActiveLoans = activeLoansCount,
+                OverdueLoans = overdueLoans,
+                TotalLoansThisMonth = loansThisMonth,
+                TotalLoansLastMonth = loansLastMonth,
+                NewMembersThisMonth = newMembersThisMonth,
+                NewBooksThisMonth = newBooksThisMonth
             };
         }
 

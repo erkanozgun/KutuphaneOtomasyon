@@ -16,18 +16,18 @@ namespace Kutuphane.WebUI.Controllers
 
         public async Task<IActionResult> Index(string searchTerm, string category, string author, string pages, bool available)
         {
-    
+
             var allBooks = await _bookService.GetAllBooksAsync();
             var filteredBooks = allBooks.AsEnumerable();
 
-    
+
             if (!string.IsNullOrEmpty(searchTerm))
             {
-        
+
                 filteredBooks = filteredBooks.Where(b =>
                     b.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                     b.ISBN.Contains(searchTerm) ||
-             
+
                     b.Author.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                 );
             }
@@ -49,10 +49,10 @@ namespace Kutuphane.WebUI.Controllers
             if (available)
                 filteredBooks = filteredBooks.Where(b => b.AvailableCopies > 0);
 
-           
+
             ViewBag.Categories = allBooks.Select(b => b.Category).Distinct().OrderBy(x => x).ToList();
 
-            
+
             ViewBag.CurrentSearch = searchTerm;
             ViewBag.CurrentCategory = category;
             ViewBag.CurrentAuthor = author;
@@ -66,7 +66,11 @@ namespace Kutuphane.WebUI.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var result = await _bookService.GetBookWithCopiesAsync(id);
-            if (result == null) return NotFound();
+            if (result == null)
+            {
+                TempData["Error"] = "Aradığınız kitap bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
             return View(result);
         }

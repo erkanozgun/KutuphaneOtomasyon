@@ -1,0 +1,14 @@
+@model Kutuphane.WebUI.ViewComponents.NotificationBadgeViewModel
+
+@if (Model.TotalAlerts > 0)
+{
+    <a asp-controller="Members" asp-action="MyLoans" 
+       class="btn btn-link position-relative p-1 me-2" 
+       title="@(Model.OverdueCount > 0 ? $"{Model.OverdueCount} gecikmiş kitabınız var!" : $"{Model.NearingDueCount} kitabınızın teslim tarihi yaklaşıyor")">
+        <i class="bi bi-bell-fill fs-5 @(Model.OverdueCount > 0 ? "text-danger" : "text-warning")"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill @(Model.OverdueCount > 0 ? "bg-danger" : "bg-warning text-dark")">
+            @Model.TotalAlerts
+            <span class="visually-hidden">bildirim</span>
+        </span>
+    </a>
+}

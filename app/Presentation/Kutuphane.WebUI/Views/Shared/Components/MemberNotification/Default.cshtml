@@ -1,0 +1,262 @@
+@model Kutuphane.WebUI.ViewComponents.MemberNotificationViewModel
+
+@if (Model.HasNotifications)
+{
+    <div class="member-notification-container">
+        @* Gecikmiş Kitap Bildirimi - En Kritik *@
+        @if (Model.OverdueLoans.Any())
+        {
+            <div class="notification-toast notification-danger show" id="overdueNotification">
+                <div class="notification-header">
+                    <div class="notification-icon pulse-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="notification-title">
+                        <strong>⚠️ Gecikmiş Kitabınız Var!</strong>
+                        <button type="button" class="btn-close btn-close-white btn-sm"
+                            onclick="dismissNotification('overdueNotification')"></button>
+                    </div>
+                </div>
+                <div class="notification-body">
+                    <p class="mb-2">
+                        <strong>@Model.OverdueLoans.Count kitap</strong> teslim tarihini geçmiş durumda.
+                        Toplam <span class="badge bg-danger">@Model.TotalOverdueDays gün</span> gecikme var.
+                    </p>
+                    <div class="notification-books">
+                        @foreach (var loan in Model.OverdueLoans.Take(3))
+                        {
+                            <div class="notification-book-item">
+                                <i class="bi bi-book text-danger me-2"></i>
+                                <span class="book-title">@loan.BookTitle</span>
+                                <span class="badge bg-danger-subtle text-danger ms-auto">@loan.OverdueDays gün</span>
+                            </div>
+                        }
+                        @if (Model.OverdueLoans.Count > 3)
+                        {
+                            <div class="text-muted small">ve @(Model.OverdueLoans.Count - 3) kitap daha...</div>
+                        }
+                    </div>
+                    <div class="notification-actions">
+                        <a href="/Members/MyLoans" class="btn btn-danger btn-sm rounded-pill">
+                            <i class="bi bi-arrow-return-left me-1"></i>Hemen İade Et
+                        </a>
+                        <small class="text-white-50">Gecikme cezası uygulanabilir</small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* Yaklaşan Teslim Bildirimi *@
+        @if (Model.NearingDueLoans.Any() && !Model.OverdueLoans.Any())
+        {
+            <div class="notification-toast notification-warning show" id="nearingNotification">
+                <div class="notification-header">
+                    <div class="notification-icon">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div class="notification-title">
+                        <strong>📅 Teslim Tarihi Yaklaşıyor</strong>
+                        <button type="button" class="btn-close btn-close-white btn-sm"
+                            onclick="dismissNotification('nearingNotification')"></button>
+                    </div>
+                </div>
+                <div class="notification-body">
+                    <p class="mb-2">
+                        <strong>@Model.NearingDueLoans.Count kitap</strong>ın teslim tarihi yaklaşıyor.
+                    </p>
+                    <div class="notification-books">
+                        @foreach (var loan in Model.NearingDueLoans.Take(3))
+                        {
+                            var daysLeft = (loan.DueDate?.Date - DateTime.Now.Date)?.Days ?? 0;
+                            string urgencyClass = daysLeft == 0 ? "danger" : (daysLeft == 1 ? "warning" : "info");
+                            string urgencyText = daysLeft == 0 ? "BUGÜN!" : (daysLeft == 1 ? "Yarın" : $"{daysLeft} gün");
+
+                            <div class="notification-book-item">
+                                <i class="bi bi-hourglass-split text-warning me-2"></i>
+                                <span class="book-title">@loan.BookTitle</span>
+                                <span class="badge bg-@urgencyClass ms-auto">@urgencyText</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="notification-actions">
+                        <a href="/Members/MyLoans" class="btn btn-warning btn-sm rounded-pill text-dark">
+                            <i class="bi bi-journal-check me-1"></i>Kitaplarımı Gör
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <style>
+        .member-notification-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 380px;
+        }
+
+        .notification-toast {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.5s ease;
+            margin-bottom: 10px;
+        }
+
+        .notification-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+
+        .notification-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #1a1a1a;
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            gap: 12px;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .pulse-danger {
+            animation: pulse 2s infinite;
+        }
+
+        .notification-title {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-body {
+            padding: 0 16px 16px;
+        }
+
+        .notification-books {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+        }
+
+        .notification-book-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.9rem;
+        }
+
+        .notification-book-item:not(:last-child) {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .book-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 180px;
+        }
+
+        .notification-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .notification-warning .notification-books {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-warning .notification-book-item:not(:last-child) {
+            border-bottom-color: rgba(0, 0, 0, 0.1);
+        }
+
+        @@keyframes slideInUp {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @@keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        .notification-toast.hide {
+            animation: slideOutDown 0.3s ease forwards;
+        }
+
+        @@keyframes slideOutDown {
+            to {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+        }
+
+        /* Mobil Uyumluluk */
+        @@media (max-width: 576px) {
+            .member-notification-container {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+
+    <script>
+        function dismissNotification(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('hide');
+                setTimeout(() => el.remove(), 300);
+
+                // Session storage'a kaydet ki tekrar göstermesin (sayfa yenilenene kadar)
+                sessionStorage.setItem('dismissed_' + id, 'true');
+            }
+        }
+
+        // Sayfa yüklendiğinde daha önce kapatılmış bildirimleri kontrol et
+        document.addEventListener('DOMContentLoaded', function () {
+            ['overdueNotification', 'nearingNotification'].forEach(id => {
+                if (sessionStorage.getItem('dismissed_' + id) === 'true') {
+                    const el = document.getElementById(id);
+                    if (el) el.remove();
+                }
+            });
+        });
+    </script>
+}

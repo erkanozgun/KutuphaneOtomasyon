@@ -23,8 +23,7 @@
                                 <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
 
                                 <input type="text" name="searchTerm" value="@ViewBag.CurrentSearch"
-                                       class="form-control border-start-0 bg-light"
-                                       placeholder="Kitap, ISBN...">
+                                    class="form-control border-start-0 bg-light" placeholder="Kitap, ISBN...">
                             </div>
                         </div>
 
@@ -44,22 +43,28 @@
 
                         <div class="mb-3">
                             <label class="form-label small text-muted text-uppercase fw-bold">Yazar</label>
-                            <input type="text" name="author" value="@ViewBag.CurrentAuthor" class="form-control bg-light" placeholder="Yazar adı...">
+                            <input type="text" name="author" value="@ViewBag.CurrentAuthor"
+                                class="form-control bg-light" placeholder="Yazar adı...">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label small text-muted text-uppercase fw-bold">Sayfa Aralığı</label>
                             <select name="pages" class="form-select bg-light">
                                 <option value="">Farketmez</option>
-                                <!option value="0-200" @(ViewBag.CurrentPages == "0-200" ? "selected" : "")>0 - 200 Sayfa</!option>
-                                <!option value="200-400" @(ViewBag.CurrentPages == "200-400" ? "selected" : "")>200 - 400 Sayfa</!option>
-                                <!option value="400-600" @(ViewBag.CurrentPages == "400-600" ? "selected" : "")>400 - 600 Sayfa</!option>
-                                <!option value="600" @(ViewBag.CurrentPages == "600" ? "selected" : "")>600+ Sayfa</!option>
+                                <!option value="0-200" @(ViewBag.CurrentPages == "0-200" ? "selected" : "")>0 - 200
+                                    Sayfa</!option>
+                                <!option value="200-400" @(ViewBag.CurrentPages == "200-400" ? "selected" : "")>200 -
+                                    400 Sayfa</!option>
+                                <!option value="400-600" @(ViewBag.CurrentPages == "400-600" ? "selected" : "")>400 -
+                                    600 Sayfa</!option>
+                                <!option value="600" @(ViewBag.CurrentPages == "600" ? "selected" : "")>600+ Sayfa
+                                </!option>
                             </select>
                         </div>
 
                         <div class="form-check form-switch mb-4">
-                            <input class="form-check-input" type="checkbox" name="available" value="true" id="availableCheck" @(ViewBag.CurrentAvailable == true ? "checked" : "")>
+                            <input class="form-check-input" type="checkbox" name="available" value="true"
+                                id="availableCheck" @(ViewBag.CurrentAvailable == true ? "checked" : "")>
                             <label class="form-check-label small" for="availableCheck">Sadece Müsait Olanlar</label>
                         </div>
 
@@ -93,9 +98,18 @@
                     {
                         <div class="col">
                             <div class="catalog-card h-100">
-                                <div class="card-badge @(book.AvailableCopies > 0 ? "badge-success" : "badge-danger")">
-                                    @(book.AvailableCopies > 0 ? "Müsait" : "Tükendi")
-                                </div>
+                                @if (book.TotalCopies == 0)
+                                {
+                                    <div class="card-badge badge-warning">Stok Yok</div>
+                                }
+                                else if (book.AvailableCopies > 0)
+                                {
+                                    <div class="card-badge badge-success">Müsait (@book.AvailableCopies)</div>
+                                }
+                                else
+                                {
+                                    <div class="card-badge badge-danger">Ödünçte</div>
+                                }
 
                                 <div class="card-img-wrapper">
                                     @if (!string.IsNullOrEmpty(book.ImageUrl))
@@ -108,7 +122,8 @@
                                     }
 
                                     <div class="card-overlay">
-                                        <a asp-action="Details" asp-route-id="@book.Id" class="btn btn-light rounded-pill px-4 fw-bold">
+                                        <a asp-action="Details" asp-route-id="@book.Id"
+                                            class="btn btn-light rounded-pill px-4 fw-bold">
                                             İncele <i class="bi bi-arrow-right"></i>
                                         </a>
                                     </div>
@@ -139,16 +154,16 @@
         background: #fff;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         transition: all 0.3s ease;
         position: relative;
         border: 1px solid #f0f0f0;
     }
 
-        .catalog-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
+    .catalog-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
 
     /* Resim Wrapper */
     .card-img-wrapper {
@@ -161,15 +176,16 @@
         overflow: hidden;
     }
 
-        .card-img-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
+    .card-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
 
     .catalog-card:hover .card-img-wrapper img {
-        transform: scale(1.05); /* Zoom efekti */
+        transform: scale(1.05);
+        /* Zoom efekti */
     }
 
     .placeholder-img {
@@ -184,7 +200,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.4);
+        background: rgba(0, 0, 0, 0.4);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -218,6 +234,11 @@
     .badge-danger {
         background: #f8d7da;
         color: #842029;
+    }
+
+    .badge-warning {
+        background: #fff3cd;
+        color: #856404;
     }
 
     /* Alt Bilgiler */

@@ -10,65 +10,128 @@
 
 <div class="container-fluid px-4 py-4">
     
+    <!-- Başlık -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="fw-bold text-dark mb-0">Kütüphane Analizi</h4>
-            <p class="text-muted small mb-0">Verilerin detaylı grafiksel gösterimi.</p>
+            <h4 class="fw-bold text-dark mb-0"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Kütüphane Analizi</h4>
+            <p class="text-muted small mb-0">Detaylı istatistikler ve grafiksel veriler</p>
         </div>
         <a asp-action="Index" class="btn btn-sm btn-light border shadow-sm rounded-pill px-3">
             <i class="bi bi-arrow-left me-2"></i>Geri Dön
         </a>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-3">
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                        <i class="bi bi-book fs-4"></i>
+    <!-- Özet Kartları - 6'lı Grid -->
+    <div class="row g-3 mb-4">
+        <!-- Toplam Kitap -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3">
+                <div class="card-body">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-book fs-5"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted small text-uppercase fw-bold mb-0">Toplam Kitap</h6>
-                        <h3 class="fw-bold text-dark mb-0">@Model.TotalBooks</h3>
-                    </div>
+                    <h3 class="fw-bold text-dark mb-0 counter" data-target="@Model.TotalBooks">@Model.TotalBooks</h3>
+                    <small class="text-muted">Toplam Kitap</small>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-3">
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                        <i class="bi bi-people fs-4"></i>
+        
+        <!-- Toplam Kopya -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3">
+                <div class="card-body">
+                    <div class="bg-info bg-opacity-10 text-info rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-layers fs-5"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted small text-uppercase fw-bold mb-0">Toplam Üye</h6>
-                        <h3 class="fw-bold text-dark mb-0">@Model.TotalMembers</h3>
+                    <h3 class="fw-bold text-dark mb-0">@Model.TotalCopies</h3>
+                    <small class="text-muted">Toplam Kopya</small>
+                    <div class="progress mt-2" style="height: 4px;">
+                        <div class="progress-bar bg-success" style="width: @Model.AvailabilityRate%"></div>
                     </div>
+                    <small class="text-success">%@Model.AvailabilityRate Müsait</small>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100 rounded-3">
-                <div class="card-body d-flex align-items-center p-4">
-                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
-                        <i class="bi bi-arrow-left-right fs-4"></i>
+        
+        <!-- Toplam Üye -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3">
+                <div class="card-body">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-people fs-5"></i>
                     </div>
-                    <div>
-                        <h6 class="text-muted small text-uppercase fw-bold mb-0">Aktif Ödünç</h6>
-                        <h3 class="fw-bold text-dark mb-0">@Model.ActiveLoans</h3>
+                    <h3 class="fw-bold text-dark mb-0">@Model.TotalMembers</h3>
+                    <small class="text-muted">Toplam Üye</small>
+                    @if (Model.NewMembersThisMonth > 0)
+                    {
+                        <div class="badge bg-success-subtle text-success mt-1">+@Model.NewMembersThisMonth Bu Ay</div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <!-- Aktif Ödünç -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3">
+                <div class="card-body">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-arrow-left-right fs-5"></i>
                     </div>
+                    <h3 class="fw-bold text-dark mb-0">@Model.ActiveLoans</h3>
+                    <small class="text-muted">Aktif Ödünç</small>
+                    <div class="small text-warning">%@Model.ActiveMemberRate Üye</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bu Ay Ödünç -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3">
+                <div class="card-body">
+                    <div class="bg-purple bg-opacity-10 rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background: rgba(139,92,246,0.1);">
+                        <i class="bi bi-calendar-check fs-5" style="color: #8b5cf6;"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-0">@Model.TotalLoansThisMonth</h3>
+                    <small class="text-muted">Bu Ay Ödünç</small>
+                    @if (Model.LoanGrowthPercent != 0)
+                    {
+                        <div class="badge @(Model.LoanGrowthPercent > 0 ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger") mt-1">
+                            <i class="bi @(Model.LoanGrowthPercent > 0 ? "bi-arrow-up" : "bi-arrow-down")"></i> %@Math.Abs(Model.LoanGrowthPercent)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gecikmiş -->
+        <div class="col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 text-center py-3 @(Model.OverdueLoans > 0 ? "border-danger border-2" : "")">
+                <div class="card-body">
+                    <div class="bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                        <i class="bi bi-exclamation-triangle fs-5"></i>
+                    </div>
+                    <h3 class="fw-bold @(Model.OverdueLoans > 0 ? "text-danger" : "text-dark") mb-0">@Model.OverdueLoans</h3>
+                    <small class="text-muted">Gecikmiş</small>
+                    @if (Model.OverdueLoans == 0)
+                    {
+                        <div class="badge bg-success-subtle text-success mt-1"><i class="bi bi-check"></i> Temiz</div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Grafikler - Ana Satır -->
     <div class="row g-4 mb-4">
+        <!-- Aylık Trend Grafiği -->
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm h-100 rounded-3">
-                <div class="card-header bg-white py-3 border-0">
-                    <h6 class="fw-bold text-dark mb-0">📈 Aylık Hareketlilik</h6>
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Aylık Ödünç Trendi</h6>
+                    <div class="d-flex gap-3 small">
+                        <span><span class="badge bg-primary">&nbsp;</span> Ödünç</span>
+                        <span><span class="badge bg-success">&nbsp;</span> İade</span>
+                    </div>
                 </div>
                 <div class="card-body">
                     <canvas id="loanChart" style="height: 300px; width: 100%;"></canvas>
@@ -76,10 +139,11 @@
             </div>
         </div>
 
+        <!-- Kategori Dağılımı -->
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm h-100 rounded-3">
                 <div class="card-header bg-white py-3 border-0">
-                    <h6 class="fw-bold text-dark mb-0">📚 Kategori Dağılımı</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pie-chart text-success me-2"></i>Kategori Dağılımı</h6>
                 </div>
                 <div class="card-body d-flex align-items-center justify-content-center">
                     <canvas id="categoryChart" style="height: 250px; width: 100%;"></canvas>
@@ -88,11 +152,13 @@
         </div>
     </div>
 
-    <div class="row g-4">
+    <!-- İkinci Satır - Yazarlar ve Okuyucular -->
+    <div class="row g-4 mb-4">
+        <!-- En Çok Eseri Olan Yazarlar -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm h-100 rounded-3">
                 <div class="card-header bg-white py-3 border-0">
-                    <h6 class="fw-bold text-dark mb-0">✒️ En Çok Eseri Olan Yazarlar</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-pen text-warning me-2"></i>En Çok Eseri Olan Yazarlar</h6>
                 </div>
                 <div class="card-body">
                     <canvas id="authorChart" style="height: 250px; width: 100%;"></canvas>
@@ -100,39 +166,72 @@
             </div>
         </div>
 
+        <!-- Ayın Kitap Kurtları -->
         <div class="col-lg-6">
             <div class="card border-0 shadow-sm h-100 rounded-3">
                 <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold text-dark mb-0">🏆 Ayın Kitap Kurtları</h6>
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-trophy-fill text-warning me-2"></i>Ayın Kitap Kurtları</h6>
+                    <span class="badge bg-light text-dark border">Top 5</span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light small text-muted text-uppercase">
                             <tr>
-                                <th class="ps-4">Sıra</th>
+                                <th class="ps-4" style="width: 60px;">Sıra</th>
                                 <th>Üye</th>
-                                <th class="text-center">Okunan</th>
+                                <th class="text-center" style="width: 100px;">Okunan</th>
                             </tr>
                         </thead>
                         <tbody>
                             @{ int rank = 1; }
-                            @foreach (var reader in Model.TopReaders)
+                            @foreach (var reader in Model.TopReaders.Take(5))
                             {
                                 <tr>
-                                    <td class="ps-4 text-muted fw-bold">@rank</td>
+                                    <td class="ps-4">
+                                        @if (rank == 1)
+                                        {
+                                            <span class="badge rounded-pill" style="background: linear-gradient(135deg, #ffd700, #ffb700); color: #1a1a1a;">🥇 1</span>
+                                        }
+                                        else if (rank == 2)
+                                        {
+                                            <span class="badge rounded-pill" style="background: linear-gradient(135deg, #c0c0c0, #a0a0a0); color: #1a1a1a;">🥈 2</span>
+                                        }
+                                        else if (rank == 3)
+                                        {
+                                            <span class="badge rounded-pill" style="background: linear-gradient(135deg, #cd7f32, #b87333); color: white;">🥉 3</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fw-bold">@rank</span>
+                                        }
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <div class="bg-light text-primary rounded-circle fw-bold d-flex align-items-center justify-content-center me-2 border" style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                                @reader.MemberName.Substring(0, 1)
+                                            <div class="bg-primary bg-opacity-10 text-primary rounded-circle fw-bold d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.85rem;">
+                                                @reader.MemberName.Substring(0, 1).ToUpper()
                                             </div>
-                                            <span class="text-dark small fw-bold">@reader.MemberName</span>
+                                            <div>
+                                                <span class="text-dark fw-bold">@reader.MemberName</span>
+                                                <small class="d-block text-muted">@reader.MemberNumber</small>
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">@reader.TotalReadCount</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2">
+                                            <i class="bi bi-book me-1"></i>@reader.TotalReadCount
+                                        </span>
                                     </td>
                                 </tr>
                                 rank++;
+                            }
+                            @if (!Model.TopReaders.Any())
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                        Henüz veri yok
+                                    </td>
+                                </tr>
                             }
                         </tbody>
                     </table>
@@ -140,47 +239,141 @@
             </div>
         </div>
     </div>
+
+    <!-- Üçüncü Satır - Popüler Kitaplar ve Haftalık Aktivite -->
+    <div class="row g-4">
+        <!-- En Popüler Kitaplar -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-star-fill text-warning me-2"></i>En Popüler Kitaplar</h6>
+                    <span class="badge bg-light text-dark border">Tüm Zamanlar</span>
+                </div>
+                <div class="list-group list-group-flush">
+                    @{ int bookRank = 1; }
+                    @foreach (var book in Model.PopularBooks.Take(5))
+                    {
+                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-light text-dark border rounded-circle me-3" style="width: 30px; height: 30px; line-height: 22px;">@bookRank</span>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark">@book.Title</h6>
+                                    <small class="text-muted">@book.Author • <span class="badge bg-info-subtle text-info border-0">@book.Category</span></small>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3">
+                                <i class="bi bi-heart-fill me-1"></i>@book.BorrowCount
+                            </span>
+                        </div>
+                        bookRank++;
+                    }
+                    @if (!Model.PopularBooks.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                            Henüz veri yok
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Haftalık Aktivite -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-calendar-week text-info me-2"></i>Son 7 Gün Aktivitesi</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyChart" style="height: 200px; width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<style>
+    .stat-card-mini {
+        transition: all 0.2s ease;
+    }
+    .stat-card-mini:hover {
+        transform: translateY(-3px);
+    }
+</style>
+
+@section Scripts {
 <script>
-    // Sadeleştirilmiş Chart Ayarları
-    Chart.defaults.font.family = "'Segoe UI', sans-serif";
+    // Chart.js Ayarları
+    Chart.defaults.font.family = "'Segoe UI', 'Inter', sans-serif";
     Chart.defaults.color = '#6c757d';
     
-    // Renkler (Daha soft)
-    const softBlue = '#3b82f6';
-    const softGreen = '#10b981';
-    const softYellow = '#f59e0b';
-    const softColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6b7280'];
+    const primaryColor = '#3b82f6';
+    const successColor = '#10b981';
+    const warningColor = '#f59e0b';
+    const dangerColor = '#ef4444';
+    const purpleColor = '#8b5cf6';
+    const softColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#6b7280'];
 
-    // 1. Line Chart
+    // 1. Aylık Trend (Line Chart - Çift Veri)
     new Chart(document.getElementById('loanChart'), {
         type: 'line',
         data: {
             labels: @Html.Raw(Json.Serialize(Model.Months)),
-            datasets: [{
-                label: 'Ödünç',
-                data: @Html.Raw(Json.Serialize(Model.MonthlyLoanCounts)),
-                borderColor: softBlue,
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                pointRadius: 3
-            }]
+            datasets: [
+                {
+                    label: 'Ödünç',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyLoanCounts)),
+                    borderColor: primaryColor,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: primaryColor
+                },
+                {
+                    label: 'İade',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyReturnCounts)),
+                    borderColor: successColor,
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 4,
+                    pointBackgroundColor: successColor
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: 'rgba(0,0,0,0.8)',
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
             scales: {
-                y: { beginAtZero: true, grid: { borderDash: [4], color: '#f3f4f6' } },
+                y: { 
+                    beginAtZero: true, 
+                    grid: { borderDash: [4], color: '#f3f4f6' },
+                    ticks: { stepSize: 1 }
+                },
                 x: { grid: { display: false } }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });
 
-    // 2. Doughnut Chart
+    // 2. Kategori Dağılımı (Doughnut)
     new Chart(document.getElementById('categoryChart'), {
         type: 'doughnut',
         data: {
@@ -188,20 +381,28 @@
             datasets: [{
                 data: @Html.Raw(Json.Serialize(Model.BookCountsByCategory)),
                 backgroundColor: softColors,
-                borderWidth: 0
+                borderWidth: 0,
+                hoverOffset: 10
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            cutout: '75%',
+            cutout: '70%',
             plugins: {
-                legend: { position: 'right', labels: { boxWidth: 12, usePointStyle: true } }
+                legend: { 
+                    position: 'right', 
+                    labels: { 
+                        boxWidth: 12, 
+                        usePointStyle: true,
+                        padding: 15
+                    } 
+                }
             }
         }
     });
 
-    // 3. Bar Chart (Yazarlar)
+    // 3. Yazarlar (Horizontal Bar)
     new Chart(document.getElementById('authorChart'), {
         type: 'bar',
         data: {
@@ -209,9 +410,9 @@
             datasets: [{
                 label: 'Kitap Sayısı',
                 data: @Html.Raw(Json.Serialize(Model.BookCountsByAuthor)),
-                backgroundColor: 'rgba(16, 185, 129, 0.7)',
-                borderRadius: 4,
-                barThickness: 20
+                backgroundColor: softColors,
+                borderRadius: 6,
+                barThickness: 25
             }]
         },
         options: {
@@ -220,9 +421,34 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { beginAtZero: true, grid: { display: false } },
+                x: { beginAtZero: true, grid: { display: false }, ticks: { stepSize: 1 } },
                 y: { grid: { display: false } }
             }
         }
     });
+
+    // 4. Haftalık Aktivite (Bar Chart)
+    new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+            labels: @Html.Raw(Json.Serialize(Model.WeekDays)),
+            datasets: [{
+                label: 'Ödünç',
+                data: @Html.Raw(Json.Serialize(Model.DailyLoanCounts)),
+                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                borderRadius: 8,
+                barThickness: 30
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [4], color: '#f3f4f6' }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
 </script>
+}

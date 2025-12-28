@@ -17,7 +17,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             _memberService = memberService;
         }
 
-        
+
         [HttpGet]
         public async Task<IActionResult> Index(string searchTerm)
         {
@@ -27,7 +27,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             return View(members);
         }
 
-      
+
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -42,7 +42,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             return View(memberWithLoans);
         }
 
-    
+
         [HttpGet]
         public IActionResult Create()
         {
@@ -63,7 +63,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
             catch (DuplicateException ex)
             {
-                ModelState.AddModelError("", ex.Message); 
+                ModelState.AddModelError("", ex.Message);
                 return View(model);
             }
             catch (Exception ex)
@@ -73,12 +73,16 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
         }
 
-   
+
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             var member = await _memberService.GetMemberByIdAsync(id);
-            if (member == null) return NotFound();
+            if (member == null)
+            {
+                TempData["Error"] = "Düzenlemek istediğiniz üye bulunamadı.";
+                return RedirectToAction("Index");
+            }
 
 
             var updateDto = new UpdateMemberDto
@@ -90,7 +94,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
                 Address = member.Address,
                 DateOfBirth = member.DateOfBirth,
                 Notes = member.Notes,
-                Status = member.Status 
+                Status = member.Status
             };
 
             ViewBag.MemberId = id;
@@ -139,7 +143,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             }
             catch (BusinessException ex)
             {
-             
+
                 TempData["Error"] = ex.Message;
             }
             catch (Exception ex)

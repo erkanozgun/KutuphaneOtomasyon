@@ -12,27 +12,33 @@
     </div>
     <div class="carousel-inner">
         <div class="carousel-item active" style="height: 500px;">
-            <img src="https://dusunbil.com/wp-content/uploads/2016/09/libraries.jpg" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
+            <img src="https://dusunbil.com/wp-content/uploads/2016/09/libraries.jpg"
+                class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
             <div class="carousel-caption d-none d-md-block text-start mb-5">
                 <h1 class="display-4 fw-bold">Dünya Klasikleri</h1>
                 <p class="lead">Edebiyatın dev yazarlarının eserlerini keşfedin.</p>
-                <a asp-controller="Books" asp-action="Index" asp-route-category="Roman" class="btn btn-primary btn-lg mt-2">İncele</a>
+                <a asp-controller="Books" asp-action="Index" asp-route-category="Roman"
+                    class="btn btn-primary btn-lg mt-2">İncele</a>
             </div>
         </div>
         <div class="carousel-item" style="height: 500px;">
-            <img src="https://serkanuygur.com.tr/wp-content/uploads/2018/03/serkan-uygur-tarihteki-bilim-insanlarc4b1.jpg?w=800" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
+            <img src="https://serkanuygur.com.tr/wp-content/uploads/2018/03/serkan-uygur-tarihteki-bilim-insanlarc4b1.jpg?w=800"
+                class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
             <div class="carousel-caption d-none d-md-block text-start mb-5">
                 <h1 class="display-4 fw-bold">Bilim ve Teknoloji</h1>
                 <p class="lead">Çağımızın en önemli bilim insanlarından ilham alın.</p>
-                <a asp-controller="Books" asp-action="Index" asp-route-category="Bilim" class="btn btn-primary btn-lg mt-2">Keşfet</a>
+                <a asp-controller="Books" asp-action="Index" asp-route-category="Bilim"
+                    class="btn btn-primary btn-lg mt-2">Keşfet</a>
             </div>
         </div>
         <div class="carousel-item" style="height: 500px;">
-            <img src="https://www.arzubiyiklioglu.com/wp-content/uploads/2018/06/felsefe.jpg" class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
+            <img src="https://www.arzubiyiklioglu.com/wp-content/uploads/2018/06/felsefe.jpg"
+                class="d-block w-100 h-100 object-fit-cover" style="filter: brightness(0.5);">
             <div class="carousel-caption d-none d-md-block text-start mb-5">
                 <h1 class="display-4 fw-bold">Felsefe ve Düşünce</h1>
                 <p class="lead">Zihinlerinizi açacak derin düşünce kitapları.</p>
-                <a asp-controller="Books" asp-action="Index" asp-route-category="Felsefe" class="btn btn-primary btn-lg mt-2">Göz At</a>
+                <a asp-controller="Books" asp-action="Index" asp-route-category="Felsefe"
+                    class="btn btn-primary btn-lg mt-2">Göz At</a>
             </div>
         </div>
     </div>
@@ -51,7 +57,8 @@
                 <h3 class="mb-3 fw-bold text-dark">Ne okumak istersiniz?</h3>
                 <form asp-controller="Books" asp-action="Index" method="get">
                     <div class="input-group input-group-lg shadow-sm">
-                        <input type="text" name="searchTerm" class="form-control border-0" placeholder="Kitap adı, yazar veya ISBN arayın...">
+                        <input type="text" name="searchTerm" class="form-control border-0"
+                            placeholder="Kitap adı, yazar veya ISBN arayın...">
                         <button class="btn btn-primary px-4" type="submit"><i class="bi bi-search"></i> Ara</button>
                     </div>
                 </form>
@@ -78,13 +85,27 @@
                         }
                         else
                         {
-                            <div class="d-flex align-items-center justify-content-center h-100 text-muted fs-1"><i class="bi bi-book"></i></div>
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted fs-1"><i
+                                    class="bi bi-book"></i></div>
                         }
-                        <span class="position-absolute top-0 end-0 badge bg-primary m-2">Yeni</span>
+                        <span class="position-absolute top-0 start-0 badge bg-primary m-2">Yeni</span>
+                        @if (book.TotalCopies == 0)
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-warning text-dark m-2">Stok Yok</span>
+                        }
+                        else if (book.AvailableCopies > 0)
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-success m-2">Müsait</span>
+                        }
+                        else
+                        {
+                            <span class="position-absolute top-0 end-0 badge bg-danger m-2">Ödünçte</span>
+                        }
                     </div>
                     <div class="card-body">
                         <h6 class="card-title text-truncate fw-bold">
-                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="text-dark text-decoration-none stretched-link">@book.Title</a>
+                            <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id"
+                                class="text-dark text-decoration-none stretched-link">@book.Title</a>
                         </h6>
                         <p class="text-muted small mb-2">@book.Author</p>
                         <div class="d-flex justify-content-between align-items-center border-top pt-2">
@@ -120,7 +141,8 @@
                             <div class="col-8">
                                 <div class="card-body py-2">
                                     <h6 class="card-title text-truncate mb-1">
-                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id" class="text-dark text-decoration-none stretched-link">@book.Title</a>
+                                        <a asp-controller="Books" asp-action="Details" asp-route-id="@book.Id"
+                                            class="text-dark text-decoration-none stretched-link">@book.Title</a>
                                     </h6>
                                     <small class="text-muted d-block mb-1">@book.Author</small>
                                     <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Popüler</span>
@@ -146,7 +168,8 @@
                     </div>
                     <h5 class="fw-bold">@cat.CategoryName</h5>
                     <p class="text-muted small">@cat.BookCount Kitap</p>
-                    <a asp-controller="Books" asp-action="Index" asp-route-category="@cat.CategoryName" class="btn btn-outline-primary btn-sm stretched-link">Keşfet</a>
+                    <a asp-controller="Books" asp-action="Index" asp-route-category="@cat.CategoryName"
+                        class="btn btn-outline-primary btn-sm stretched-link">Keşfet</a>
                 </div>
             </div>
         }
@@ -159,10 +182,10 @@
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
-        .hover-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
 
     .object-fit-cover {
         object-fit: cover;

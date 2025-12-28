@@ -7,21 +7,6 @@
 
 <div class="container py-5">
 
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    }
-
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb bg-transparent p-0">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-decoration-none">Ana Sayfa</a></li>
@@ -50,8 +35,19 @@
                 <div class="mt-4 d-grid gap-2">
                     @if (User.Identity.IsAuthenticated)
                     {
-                        @if (Model.AvailableCopies > 0)
+                        @if (Model.TotalCopies == 0)
                         {
+                            <!-- Hiç kopya eklenmemiş -->
+                            <button class="btn btn-secondary btn-lg w-100" disabled>
+                                <i class="bi bi-box-seam me-2"></i> Stok Yok
+                            </button>
+                            <div class="alert alert-warning text-center mb-0 py-2 mt-2 small">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Bu kitap için henüz kopya eklenmemiş.
+                            </div>
+                        }
+                        else if (Model.AvailableCopies > 0)
+                        {
+                            <!-- Müsait kopya var -->
                             <form asp-controller="Loans" asp-action="CreateLoan" method="post">
                                 <input type="hidden" name="bookId" value="@Model.Id" />
 
@@ -61,16 +57,17 @@
                             </form>
                             
                             <div class="alert alert-success text-center mb-0 py-2 mt-2 small">
-                                <i class="bi bi-check-circle-fill"></i> <strong>@Model.AvailableCopies</strong> Adet Müsait
+                                <i class="bi bi-check-circle-fill"></i> <strong>@Model.AvailableCopies</strong> / @Model.TotalCopies Kopya Müsait
                             </div>
                         }
                         else
                         {
+                            <!-- Tüm kopyalar ödünçte -->
                             <button class="btn btn-secondary btn-lg w-100" disabled>
-                                <i class="bi bi-x-circle me-2"></i> Tükendi
+                                <i class="bi bi-clock-history me-2"></i> Tükendi
                             </button>
                             <div class="alert alert-danger text-center mb-0 py-2 mt-2 small">
-                                Şu an tüm kopyalar ödünçte.
+                                <i class="bi bi-x-circle-fill"></i> Tüm kopyalar ödünçte. (@Model.TotalCopies kopyanın tamamı)
                             </div>
                         }
                     }

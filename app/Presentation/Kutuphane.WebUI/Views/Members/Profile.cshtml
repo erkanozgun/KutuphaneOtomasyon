@@ -9,25 +9,6 @@
     var msgList = ViewBag.UserMessages as IEnumerable<ResultContactDto>;
 }
 
-@if (TempData["Success"] != null)
-{
-    <div class="container mt-3">
-        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="container mt-3">
-        <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    </div>
-}
-
 <div class="container py-5">
     <div class="row g-4">
 

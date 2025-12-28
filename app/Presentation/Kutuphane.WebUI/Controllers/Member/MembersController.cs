@@ -1,7 +1,7 @@
 ﻿using Kutuphane.Application.Dtos.AuthDtos;
 using Kutuphane.Application.Dtos.MemberDtos;
 using Kutuphane.Application.Interfaces.Services;
-using Kutuphane.WebUI.Models.ViewModels; 
+using Kutuphane.WebUI.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -30,9 +30,13 @@ namespace Kutuphane.WebUI.Controllers.Member
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var user = await _authService.GetUserByIdAsync(userId);
 
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                TempData["Error"] = "Oturum bilgileriniz doğrulanamadı. Lütfen tekrar giriş yapın.";
+                return RedirectToAction("Login", "Account");
+            }
 
-     
+
             var userMessages = await _contactService.GetMessagesByEmailAsync(user.Email);
             ViewBag.UserMessages = userMessages.Take(5).ToList();
 
@@ -101,7 +105,7 @@ namespace Kutuphane.WebUI.Controllers.Member
             }
         }
 
- 
+
         [HttpGet]
         public async Task<IActionResult> MyLoans()
         {
@@ -151,13 +155,13 @@ namespace Kutuphane.WebUI.Controllers.Member
             }
         }
 
-    
+
         [HttpPost]
         public async Task<IActionResult> DeleteMessage(int id)
         {
             try
             {
-             
+
                 await _contactService.DeleteMessageAsync(id);
                 TempData["Success"] = "Mesaj silindi.";
             }

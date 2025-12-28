@@ -17,7 +17,8 @@
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
                     <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Anasayfa</a></li>
-                    <li class="breadcrumb-item"><a href="/Members/Profile" class="text-decoration-none">Profilim</a></li>
+                    <li class="breadcrumb-item"><a href="/Members/Profile" class="text-decoration-none">Profilim</a>
+                    </li>
                     <li class="breadcrumb-item active" aria-current="page">Ödünçlerim</li>
                 </ol>
             </nav>
@@ -26,6 +27,59 @@
             <i class="bi bi-search me-2"></i> Yeni Kitap Bul
         </a>
     </div>
+
+    @{
+        var overdueLoans = activeLoans.Where(l => l.IsOverdue).ToList();
+        var nearingDueLoans = activeLoans.Where(l => !l.IsOverdue && l.DueDate.HasValue && (l.DueDate.Value -
+        DateTime.Now).TotalDays <= 3).ToList();
+    }
+
+    @* Gecikmiş Ödünç Uyarısı *@
+    @if (overdueLoans.Any())
+    {
+        <div class="alert alert-danger border-0 shadow-sm mb-4 rounded-4" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style="width: 50px; height: 50px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-1">⚠️ Gecikmiş Kitabınız Var!</h5>
+                    <p class="mb-0">
+                        <strong>@overdueLoans.Count kitap</strong> teslim tarihini geçmiş durumda.
+                        Toplam <strong>@overdueLoans.Sum(l => l.OverdueDays) gün</strong> gecikme var.
+                        <br><small class="opacity-75">Gecikme süresi uzadıkça ceza puanınız artabilir. Lütfen en kısa sürede
+                            iade edin.</small>
+                    </p>
+                </div>
+                <a href="#" class="btn btn-danger rounded-pill px-4">
+                    <i class="bi bi-arrow-return-left me-1"></i>Hemen İade Et
+                </a>
+            </div>
+        </div>
+    }
+
+    @* Yaklaşan Teslim Uyarısı *@
+    @if (nearingDueLoans.Any() && !overdueLoans.Any())
+    {
+        <div class="alert alert-warning border-0 shadow-sm mb-4 rounded-4" role="alert">
+            <div class="d-flex align-items-center">
+                <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style="width: 50px; height: 50px;">
+                    <i class="bi bi-clock-fill fs-4"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading mb-1">📅 Teslim Tarihi Yaklaşıyor</h5>
+                    <p class="mb-0">
+                        <strong>@nearingDueLoans.Count kitap</strong>ın teslim tarihi 3 gün içinde dolacak.
+                        <br><small class="opacity-75">Gecikme cezası oluşmaması için zamanında iade etmeyi
+                            unutmayın.</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+
 
     <div class="mb-5">
         <h4 class="fw-bold text-dark mb-3 d-flex align-items-center">
@@ -40,7 +94,8 @@
                 <div class="card-body">
                     <div class="display-1 text-muted opacity-25 mb-3"><i class="bi bi-book"></i></div>
                     <h5 class="text-muted">Şu an elinizde ödünç kitap bulunmuyor.</h5>
-                    <p class="text-muted small">Kütüphane kataloğundan ilginizi çeken kitapları hemen ödünç alabilirsiniz.</p>
+                    <p class="text-muted small">Kütüphane kataloğundan ilginizi çeken kitapları hemen ödünç alabilirsiniz.
+                    </p>
                 </div>
             </div>
         }
@@ -50,9 +105,11 @@
                 @foreach (var loan in activeLoans)
                 {
                     // Tarih hesaplamaları
-                    var isNearDue = loan.DueDate.HasValue && (loan.DueDate.Value - DateTime.Now).TotalDays <= 3 && !loan.IsOverdue;
+                    var isNearDue = loan.DueDate.HasValue && (loan.DueDate.Value - DateTime.Now).TotalDays <= 3 &&
+                    !loan.IsOverdue;
                     var statusColor = loan.IsOverdue ? "danger" : (isNearDue ? "warning" : "success");
-                    var statusText = loan.IsOverdue ? $"Gecikti ({loan.OverdueDays} Gün)" : (isNearDue ? "Teslim Yaklaştı" : "Devam Ediyor");
+                    var statusText = loan.IsOverdue ? $"Gecikti ({loan.OverdueDays} Gün)" : (isNearDue ? "Teslim Yaklaştı" :
+                    "Devam Ediyor");
 
                     <div class="col-md-6 col-lg-4">
                         <div class="card border-0 shadow-sm h-100 position-relative overflow-hidden loan-card">
@@ -72,25 +129,29 @@
                                 <div class="row g-2 mb-4 bg-light rounded-3 p-2 mx-0">
                                     <div class="col-6 text-center border-end">
                                         <small class="d-block text-muted" style="font-size: 0.7rem;">ALINDIĞI TARİH</small>
-                                        <span class="fw-bold text-dark">@(loan.LoanDate.HasValue? loan.LoanDate.Value.ToString("dd MMM") : "-")</span>
+                                        <span class="fw-bold text-dark">@(loan.LoanDate.HasValue ?
+                                    loan.LoanDate.Value.ToString("dd MMM") : "-")</span>
                                     </div>
                                     <div class="col-6 text-center">
                                         <small class="d-block text-muted" style="font-size: 0.7rem;">SON TESLİM</small>
-                                        <span class="fw-bold text-@statusColor">@(loan.DueDate.HasValue? loan.DueDate.Value.ToString("dd MMM") : "-")</span>
+                                        <span class="fw-bold text-@statusColor">@(loan.DueDate.HasValue ?
+                                    loan.DueDate.Value.ToString("dd MMM") : "-")</span>
                                     </div>
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@loan.BookId" asp-area="" class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1">
+                                    <a asp-controller="Books" asp-action="Details" asp-route-id="@loan.BookId" asp-area=""
+                                        class="btn btn-outline-primary btn-sm rounded-pill flex-grow-1">
                                         Detay
                                     </a>
 
-                                    <form asp-controller="Loans" asp-action="ReturnLoan" asp-area="" method="post" class="flex-grow-1">
+                                    <form asp-controller="Loans" asp-action="ReturnLoan" asp-area="" method="post"
+                                        class="flex-grow-1">
 
                                         <input type="hidden" name="loanId" value="@loan.Id" />
 
                                         <button type="submit" class="btn btn-sm btn-outline-danger w-100 rounded-pill"
-                                                onclick="return confirm('@loan.BookTitle kitabını iade etmek istediğinize emin misiniz?');">
+                                            onclick="return confirm('@loan.BookTitle kitabını iade etmek istediğinize emin misiniz?');">
                                             <i class="bi bi-arrow-return-left"></i> İade Et
                                         </button>
                                     </form>
@@ -134,14 +195,16 @@
                                 <tr>
                                     <td class="ps-4 fw-bold text-dark">@loan.BookTitle</td>
                                     <td class="text-muted">@loan.Author</td>
-                                    <td>@(loan.LoanDate.HasValue? loan.LoanDate.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                    <td>@(loan.LoanDate.HasValue ? loan.LoanDate.Value.ToString("dd.MM.yyyy") : "-")</td>
                                     <td>
                                         <span class="text-success fw-bold">
-                                            <i class="bi bi-check2-all me-1"></i> @(loan.ReturnDate.HasValue? loan.ReturnDate.Value.ToString("dd.MM.yyyy") : "-")
+                                            <i class="bi bi-check2-all me-1"></i> @(loan.ReturnDate.HasValue ?
+                                    loan.ReturnDate.Value.ToString("dd.MM.yyyy") : "-")
                                         </span>
                                     </td>
                                     <td class="text-end pe-4">
-                                        <span class="badge bg-secondary bg-opacity-25 text-secondary rounded-pill px-3">İade Edildi</span>
+                                        <span class="badge bg-secondary bg-opacity-25 text-secondary rounded-pill px-3">İade
+                                            Edildi</span>
                                     </td>
                                 </tr>
                             }
@@ -159,8 +222,8 @@
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-        .loan-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
-        }
+    .loan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
 </style>

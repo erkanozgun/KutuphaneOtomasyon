@@ -99,6 +99,9 @@
                     }
                     else
                     {
+                        @* Navbar Bildirim Badge'i *@
+                        @await Component.InvokeAsync("NotificationBadge")
+                        
                         <div class="dropdown">
                             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark fw-bold" data-bs-toggle="dropdown">
                                 <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
@@ -108,7 +111,11 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2">
                                 <li><a class="dropdown-item py-2" asp-controller="Members" asp-action="Profile"><i class="bi bi-person me-2"></i> Profilim</a></li>
-                                <li><a class="dropdown-item py-2" asp-controller="Members" asp-action="MyLoans"><i class="bi bi-journal-check me-2"></i> Kitaplarım</a></li>
+                                <li>
+                                    <a class="dropdown-item py-2 position-relative" asp-controller="Members" asp-action="MyLoans">
+                                        <i class="bi bi-journal-check me-2"></i> Kitaplarım
+                                    </a>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form asp-controller="Account" asp-action="Logout" method="post">
@@ -126,6 +133,9 @@
     <main>
         @RenderBody()
     </main>
+
+    @* Üye Bildirimleri - Gecikmiş/Yaklaşan Teslim Uyarıları *@
+    @await Component.InvokeAsync("MemberNotification")
 
     <footer>
         <div class="container">
