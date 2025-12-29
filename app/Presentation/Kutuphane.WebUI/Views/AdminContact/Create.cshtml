@@ -70,7 +70,43 @@
 </div>
 
 @section Scripts {
-    <script>
-      
-    </script>
+        <script>
+            $(document).ready(function () {
+                // Üye dropdown'u değiştiğinde
+                $('#memberSelect').on('change', function () {
+                    var selectedMemberId = $(this).val();
+
+                    if (selectedMemberId && selectedMemberId !== '') {
+                        // AJAX ile üye bilgilerini al
+                        $.ajax({
+                            url: '@Url.Action("GetMemberInfo", "AdminContact")',
+                            type: 'GET',
+                            data: { id: selectedMemberId },
+                            success: function (response) {
+                                if (response.success) {
+                                    // Alanları doldur
+                                    $('#receiverName').val(response.fullName);
+                                    $('#receiverEmail').val(response.email);
+
+                                    // Alanları kısa süre için vurgula
+                                    $('#receiverName, #receiverEmail').addClass('border-success');
+                                    setTimeout(function() {
+                                        $('#receiverName, #receiverEmail').removeClass('border-success');
+                                    }, 1500);
+                                } else {
+                                    console.error('Üye bilgisi alınamadı:', response.message);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('AJAX hatası:', error);
+                            }
+                        });
+                    } else {
+                        // Manuel giriş seçildiyse alanları temizle
+                        $('#receiverName').val('');
+                        $('#receiverEmail').val('');
+                    }
+                });
+            });
+        </script>
 }

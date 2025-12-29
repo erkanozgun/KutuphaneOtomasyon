@@ -27,17 +27,17 @@ namespace Kutuphane.WebUI.Controllers.Admin
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            
+
             var allMessages = await _contactService.GetAllMessagesAsync();
 
             var model = new ContactListViewModel
             {
-                
+
                 InboxMessages = allMessages
                     .Where(x => x.MessageType != "Sent")
                     .ToList(),
 
-               
+
                 OutboxMessages = allMessages
                     .Where(x => x.MessageType == "Sent")
                     .ToList()
@@ -46,7 +46,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
             return View(model);
         }
 
-  
+
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -72,13 +72,13 @@ namespace Kutuphane.WebUI.Controllers.Admin
             return RedirectToAction("Index");
         }
 
-    
+
         [HttpPost]
         public async Task<IActionResult> Reply(int id, string replyMessage)
         {
             await _contactService.ReplyToMessageAsync(id, replyMessage);
 
-        
+
             TempData["Success"] = "Cevap başarıyla gönderildi.";
             return RedirectToAction("Index");
         }
@@ -88,10 +88,10 @@ namespace Kutuphane.WebUI.Controllers.Admin
         {
             var model = new CreateContactMessageDto();
 
-            
+
             var members = await _memberService.GetAllMembersAsync();
 
-           
+
             if (toMemberId.HasValue)
             {
                 var targetMember = members.FirstOrDefault(m => m.Id == toMemberId.Value);
@@ -100,12 +100,12 @@ namespace Kutuphane.WebUI.Controllers.Admin
                     model.SelectedMemberId = targetMember.Id;
                     model.Email = targetMember.Email;
                     model.Name = targetMember.FullName;
-                    model.Subject = "Kütüphane Ödünç İşlemi Hatırlatması"; 
-                    model.Message = $"Sayın {targetMember.FullName},\n\n"; 
+                    model.Subject = "Kütüphane Ödünç İşlemi Hatırlatması";
+                    model.Message = $"Sayın {targetMember.FullName},\n\n";
                 }
             }
 
-         
+
             ViewBag.Members = new SelectList(members, "Id", "FullName", toMemberId);
 
             return View(model);
@@ -117,7 +117,7 @@ namespace Kutuphane.WebUI.Controllers.Admin
         {
             if (ModelState.IsValid)
             {
-                
+
                 var contactDto = new ContactMessageDto
                 {
                     Name = model.Name,
@@ -127,18 +127,39 @@ namespace Kutuphane.WebUI.Controllers.Admin
                     MessageType = ContactMessageType.Sent
                 };
 
-              
+
                 await _contactService.SendMessageAsync(contactDto, null);
 
                 TempData["Success"] = "Mesaj başarıyla gönderildi.";
                 return RedirectToAction("Index");
             }
 
-          
+
             var members = await _memberService.GetAllMembersAsync();
             ViewBag.Members = new SelectList(members, "Id", "FullName", model.SelectedMemberId);
 
             return View(model);
+        }
+
+        /// <summary>
+        /// AJAX endpoint - Seçilen üyenin bilgilerini JSON olarak döndürür
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetMemberInfo(int id)
+        {
+            var member = await _memberService.GetMemberByIdAsync(id);
+
+            if (member == null)
+            {
+                return Json(new { success = false, message = "Üye bulunamadı." });
+            }
+
+            return Json(new
+            {
+                success = true,
+                fullName = member.FullName,
+                email = member.Email ?? ""
+            });
         }
 
     }
